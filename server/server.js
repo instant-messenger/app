@@ -9,6 +9,7 @@ app.get('/', (request, response) => {
 
 io.on('connection', function(socket){
     console.log('a user connected');
+    socket.send('hello')
 });
 
 module.exports = server;
