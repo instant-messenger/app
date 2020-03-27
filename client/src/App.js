@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Route } from 'react-router-dom';
+import { Route } from 'react-router-dom';
 import io from "socket.io-client";
 import LoginPage from './Pages/LoginPage';
 import ChatPage from './Pages/ChatPage';
 import './App.css';
+import Nav from './components/Nav';
+
+// Components
 
 function App() 
 {
@@ -31,18 +34,11 @@ function App()
 
 return (
     <div className="App">
+      <Nav />
       <h1>This is the client side</h1>
-
       {userName ? <p>Welcome {userName}</p> : null}
-
-      <Router>
-
         <Route exact path="/login" component={() => <LoginPage handleSubmission={handleUserNameSubmission} />} />
-
-        <Route exact path="/chat" component={() => < ChatPage userSocket={userSocket} />} />
-
-      </Router>
-
+        <Route exact path="/dashboard" component={() => < ChatPage userSocket={userSocket} />} />
     </div>
   );
 }
