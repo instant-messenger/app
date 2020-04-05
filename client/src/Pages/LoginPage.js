@@ -1,5 +1,6 @@
-import React from 'react'
-import { Link } from 'react-router-dom'
+import React from 'react';
+import { Link } from 'react-router-dom';
+import "./styles/LoginPage.css";
 
 function LoginPage(props)
 {
@@ -18,7 +19,7 @@ function LoginPage(props)
     return(
         <div>
             <h1>Login Page</h1>
-            <Link onClick={handleClick} to="/chat">Submit</Link>
+            <Link className="login-page-button" onClick={handleClick} to="/chat">Submit</Link>
             <input onChange={handleTyping} placeholder="Set Name"></input>
         </div>
     )

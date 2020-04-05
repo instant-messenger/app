@@ -1,0 +1,8 @@
+
+.contacts-container{
+    flex-grow: 1;
+    background-color: violet;
+    padding: 0;
+    margin: 0;
+    border: solid red 1px;
+}

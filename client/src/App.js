@@ -6,8 +6,6 @@ import ChatPage from './Pages/ChatPage';
 import './App.css';
 import Nav from './components/Nav';
 
-// Components
-
 function App() 
 {
     const [userSocket, setSocket] = useState();
@@ -16,7 +14,7 @@ function App()
     function handleUserNameSubmission(name)
     {
         setUserName(name);
-
+        
         // 'name' can be passed to server the following way
         userSocket.emit('login', name);
     }
@@ -34,11 +32,10 @@ function App()
 
 return (
     <div className="App">
-      <Nav />
-      <h1>This is the client side</h1>
-      {userName ? <p>Welcome {userName}</p> : null}
+        <Nav />
+        {userName ? <p>Welcome {userName}</p> : null}
         <Route exact path="/login" component={() => <LoginPage handleSubmission={handleUserNameSubmission} />} />
-        <Route exact path="/dashboard" component={() => < ChatPage userSocket={userSocket} />} />
+        <Route exact path="/chat" component={() => <ChatPage userSocket={userSocket} />} />
     </div>
   );
 }
