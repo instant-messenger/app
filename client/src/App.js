@@ -3,7 +3,7 @@ import { Route } from 'react-router-dom';
 import io from "socket.io-client";
 import LoginPage from './Pages/LoginPage';
 import ChatPage from './Pages/ChatPage';
-import './App.css';
+import './App.scss';
 import Nav from './components/Nav';
 
 function App() 

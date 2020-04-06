@@ -1,5 +1,5 @@
 import React, {useState, useEffect} from 'react';
-import './styles/ContactsPanel.css';
+import './styles/ContactsPanel.scss';
 
 // When a new user is connected, their name should appear in this list.
 // This will be similar to when a new user joins a room, or having a 'friends list'

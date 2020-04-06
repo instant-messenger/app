@@ -1,6 +1,6 @@
 import React from 'react';
 import Contacts from '../components/ContactsPanel';
-import './styles/ChatPage.css';
+import './styles/ChatPage.scss';
 
 // This Component will contain two other components;
 // ContactsPanel Component: Display a list of users(Either users that belong in a room or a friends list)
