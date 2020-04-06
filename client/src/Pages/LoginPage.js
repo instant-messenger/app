@@ -23,6 +23,7 @@ function LoginPage(props)
     return(
         <div className="container">
             <div className="form-container">
+                <h2>Login below</h2>
                 <form className="form">
                     <input name="username" value={inputs.username} onChange={handleTyping} placeholder="Username"></input>
                     <input name="password" type="password" value={inputs.password} onChange={handleTyping} placeholder="Password"></input>
