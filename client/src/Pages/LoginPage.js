@@ -12,6 +12,8 @@ function LoginPage(props)
     function handleClick(e) {
         e.preventDefault();
         props.handleSubmission(inputs.username);
+        props.history.push('/chat')
+        console.log('Login props', props)
     }
 
     function handleTyping(e) {
@@ -27,7 +29,7 @@ function LoginPage(props)
                 <form className="form">
                     <input name="username" value={inputs.username} onChange={handleTyping} placeholder="Username"></input>
                     <input name="password" type="password" value={inputs.password} onChange={handleTyping} placeholder="Password"></input>
-                    <Link className="login-page-button" onClick={handleClick} to="/chat">Submit</Link>
+                    <button className="login-page-button" onClick={handleClick} to="/chat">Submit</button>
                 </form>
             </div>
         </div>

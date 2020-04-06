@@ -34,7 +34,7 @@ return (
     <div className="App">
         <Nav />
         {userName ? <p>Welcome {userName}</p> : null}
-        <Route exact path="/login" component={() => <LoginPage handleSubmission={handleUserNameSubmission} />} />
+        <Route exact path="/login" component={(props) => <LoginPage handleSubmission={handleUserNameSubmission} {...props}/>} />
         <Route exact path="/chat" component={() => <ChatPage userSocket={userSocket} />} />
     </div>
   );
