@@ -4,23 +4,31 @@ import "./styles/LoginPage.css";
 
 function LoginPage(props)
 {
-    const [name, setName] = React.useState();
+    const [inputs, setInputs] = React.useState({
+        username: "",
+        password: "",
+    });
 
-    function handleClick(e)
-    {
-        props.handleSubmission(name);
+    function handleClick(e) {
+        e.preventDefault();
+        props.handleSubmission(inputs.username);
     }
 
-    function handleTyping(e)
-    {
-        setName(e.target.value);
+    function handleTyping(e) {
+        e.preventDefault();
+        console.log(e.target.value)
+        setInputs({...inputs, [e.target.name]: e.target.value});
     }
 
     return(
-        <div>
-            <h1>Login Page</h1>
-            <Link className="login-page-button" onClick={handleClick} to="/chat">Submit</Link>
-            <input onChange={handleTyping} placeholder="Set Name"></input>
+        <div className="container">
+            <div className="form-container">
+                <form className="form">
+                    <input name="username" value={inputs.username} onChange={handleTyping} placeholder="Username"></input>
+                    <input name="password" type="password" value={inputs.password} onChange={handleTyping} placeholder="Password"></input>
+                    <Link className="login-page-button" onClick={handleClick} to="/chat">Submit</Link>
+                </form>
+            </div>
         </div>
     )
 }
