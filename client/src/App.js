@@ -3,6 +3,7 @@ import { Route } from 'react-router-dom';
 import io from "socket.io-client";
 import LoginPage from './Pages/LoginPage';
 import ChatPage from './Pages/ChatPage';
+import RegisterPage from './Pages/RegisterPage';
 import './App.scss';
 import Nav from './components/Nav';
 
@@ -35,7 +36,8 @@ return (
         <Nav />
         {userName ? <p>Welcome {userName}</p> : null}
         <Route exact path="/login" component={(props) => <LoginPage handleSubmission={handleUserNameSubmission} {...props}/>} />
-        <Route exact path="/chat" component={() => <ChatPage userSocket={userSocket} />} />
+        <Route exact path="/register" component={(props) => <RegisterPage handleSubmission={handleUserNameSubmission} {...props}/>} />
+        <Route exact path="/chat" component={() => <ChatPage userSocket={userSocket} userName={userName} />} />
     </div>
   );
 }

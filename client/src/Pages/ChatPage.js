@@ -10,7 +10,7 @@ function ChatPage(props)
 {
     function handleChange(e)
     {
-        props.userSocket.emit("chat");
+        props.userSocket.emit("chat", props.userName);
     }
 
     return(
@@ -19,7 +19,7 @@ function ChatPage(props)
             
             <div className="chat-page-comps">
                 <Contacts isActive={true} size={2} userSocket={props.userSocket} panelName="All Users Panel" />
-                <Contacts isActive={false} size={5} userSocket={props.userSocket} panelName="This is where a chat log component will be in place later. Currently using a ContactsPanel component to view the layout." />
+                <Contacts isActive={false} size={4} userSocket={props.userSocket} panelName="This is where a chat log component will be in place later. Currently using a ContactsPanel component to view the layout." />
             </div>
                 
             <input className="chat-page-input" onChange={handleChange} placeholder="Enter Message"/>

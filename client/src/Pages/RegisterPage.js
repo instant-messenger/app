@@ -2,7 +2,7 @@ import React from 'react';
 import "./styles/LoginPage.scss";
 const axios = require('axios');
 
-function LoginPage(props)
+function RegisterPage(props)
 {
     const [inputs, setInputs] = React.useState({
         username: "",
@@ -14,7 +14,7 @@ function LoginPage(props)
         e.preventDefault();
         
         // This url will go inside the .env file
-        var url = 'http://localhost:3500/login';
+        var url = 'http://localhost:3500/register';
         
         axios.post(url, inputs)
         .then((response) => 
@@ -39,7 +39,7 @@ function LoginPage(props)
     return(
         <div className="container">
             <div className="form-container">
-                <h2>Login below</h2>
+                <h2>Register below</h2>
                 <form className="form" onSubmit={handleClick}>
                     <input name="username" value={inputs.username} onChange={handleTyping} placeholder="Username"></input>
                     <input name="password" type="password" value={inputs.password} onChange={handleTyping} placeholder="Password"></input>
@@ -50,4 +50,4 @@ function LoginPage(props)
     )
 }
 
-export default LoginPage;
+export default RegisterPage;
