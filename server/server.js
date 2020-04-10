@@ -1,13 +1,13 @@
 const express = require("express");
 const mongoose = require('mongoose');
 const app = express();
+const server = require('http').createServer(app);
 const cors = require('cors');
 const bp = require('body-parser');
-const bcrypt = require('bcrypt');
-const saltRounds = 10;
-
-var server = require('http').createServer(app);
-var io = require('socket.io')(server);
+const session = require('express-session');
+const passport = require('passport');
+const passportLocalMongoose = require('passport-local-mongoose');
+const io = require('socket.io')(server);
 
 app.use(cors({
     origin: 'http://localhost:3000',
@@ -17,6 +17,15 @@ app.use(cors({
 app.use(express.json());
 app.use(bp.urlencoded({extended: true}));
 
+app.use(session({
+    secret: 'Move to env File',
+    resave: false,
+    saveUninitialized: false
+}));
+
+app.use(passport.initialize());
+app.use(passport.session());
+
 // Connect to MongoDB
 mongoose.connect('mongodb://localhost:27017/messengerDB', {useUnifiedTopology: true, useNewUrlParser: true});
 
@@ -25,104 +34,78 @@ const userSchema = new mongoose.Schema({
 	password: String,
 });
 
+userSchema.plugin(passportLocalMongoose);
+
 const UserMod = new mongoose.model("users", userSchema);
 
-// Each user will be an object with a 'userName' field
-const users = [];
-
-app.get('/', (request, response) => {
-    response.send('<h1>Welcome to Instant Messenger</h1>');
-});
-
+passport.use(UserMod.createStrategy());
+passport.serializeUser(UserMod.serializeUser());
+passport.deserializeUser(UserMod.deserializeUser());
 
 // -----------------Database Start--------------------
 
-// When login in, it makes sure that the username exists in the database
 app.post('/login', function(req, res)
 {
-    const req_username = req.body.username;
-    const req_password = req.body.password;
-
-    // TODO On frontend, make sure username and password fields are not empty
-    if(req_username === "" || req_password === "")
+    const returningUser = new UserMod({
+		username: req.body.username,
+		password: req.body.password
+    });
+    
+    req.login(returningUser, function(err)
     {
-        res.status(401);            // 401 Status = The requested page needs a username and a password.
-        res.send();
-    } 
-    else
-    {   
-        UserMod.findOne({username: req_username}, function(err, foundUser)
+        if(err)
         {
-            if(err)
+            res.status(404).send();
+        }
+        else
+        {
+            passport.authenticate("local")(req, res, function()
             {
-                console.log(err);
-            }
-            else
-            {
-                if(foundUser)
-                {
-                    bcrypt.compare(req.body.password, foundUser.password, function(bcrypt_err, result)
-                    {
-                        res.status((bcrypt_err || !result ? 401 : 200));
-                        res.send();
-                    })
-                }
-                else
-                {
-                    res.status(404);
-                    res.send();
-                }
-            }
-        })
-    }
-})
+                res.status(200).send();                
+            });
+        }
+    })
+});
 
-// Before saving a new user to the database, it makes sure that username doesn't exists - Username will be replaced with email soon
 app.post('/register', function(req, res)
 {
-    const req_username = req.body.username;
-    const req_password = req.body.password;
-
-    if(req_username === "" || req_password === "")
+    UserMod.register({username: req.body.username}, req.body.password, function(err, newUser)
     {
-        res.status(401);            // 401 Status = The requested page needs a username and a password.
-        res.send();
+        if(err)
+            console.log(err);
+        else
+        {
+            passport.authenticate("local")(req, res, function()
+            {
+                res.status(200).send();                
+            });
+        }
+    })
+})
+
+app.get("/isAuth", function(req, res)
+{
+    if(req.isAuthenticated())
+    {
+        const userData = {_id: req.user._id, username: req.user.username};
+        res.status(200).send(userData);
     }
     else
     {
-        UserMod.findOne({username: req_username}, function(err, foundUser)
-        {
-            if(err)
-            {
-                console.log(err);
-                res.status(400);
-                res.send();
-            }
-            else
-            {
-                if(foundUser)
-                {
-                    console.log("User exists");
-                    res.status(401);                
-                    res.send();
-                }
-                else
-                {
-                    const hash = bcrypt.hashSync(req_password, saltRounds);
+        res.status(400).send("Error - Not authenticated");
+    }
+});
 
-                    const newUser = new UserMod({
-                        username: req_username,
-                        password: hash
-                    });
-
-                    newUser.save(function(saveErr)
-                    {
-                        res.status((saveErr ? 500 : 200));
-                        res.send();
-                    });
-                }
-            }
-        })
+app.get('/logout', function(req, res)
+{
+    if(req.isAuthenticated())
+    {    
+        req.logout();
+        res.status(200).send();
+    }
+    else
+    {
+        res.status(401).send();
     }
 })
 
@@ -131,42 +114,22 @@ app.post('/register', function(req, res)
 // ----------------Socket IO Start----------------------
 io.on('connection', function(socket)
 {
-    // When the 'login event' is trigger, it expects a param 'name'
-    socket.on('login', function(name)
-    {
-        console.log(name + " has login: " + socket.id);
-
-        const user = {
-            userName: name,
-            friends: [],
-            id: socket.id
-        }
-
-        users[socket.id] = user;
-
-        const usersLength = Object.keys(users).length;
-        console.log(usersLength + " users in total!");
-    });
-
     // This is called when a user is typing on the input box in the /chat page
-    socket.on('chat', function(userName)
+    socket.on('chat', function(username)
     {
-        console.log(userName + " is typing");
+        console.log(username + " is typing");
     });
 
-
-    // ----------Note: the bottom code will be updated to display a friends list-------------
-
-    // This is called when a user is directed to the /chat page
-    socket.on('getAllUsers', function() 
+    // This is should be called when a user is directed to the /chat page
+    // A param called 'userID' is needed. 
+    //TODO:
+        // 1) Add a 'friends' array to each user in DB. It should store other users' ids.
+        // 2) Return the list of friends and add them to the array below - then return to client.
+    socket.on('findFriends', function() 
     {
-        // Goes through the users dictionary and pushes each user to an array
-        var result = Object.keys(users).map(function (key) {
-            return (users[key]);
-        });
+        const friends = [];
 
-        // Returns the result array from above to the front-end - specifically to ContactsPanel component
-        io.emit('getUsers', result);
+        io.emit('getFriends', friends);
     });
 });
 

@@ -16,12 +16,19 @@ function LoginPage(props)
         // This url will go inside the .env file
         var url = 'http://localhost:3500/login';
         
-        axios.post(url, inputs)
+        // Making an api post with the 'inputs' object to check if user exists
+        axios.post(url, inputs, 
+        {
+            withCredentials: true,
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: "same-origin"
+        })
         .then((response) => 
         {
             if(response.status === 200)
             {
-                props.handleSubmission(inputs.username);
                 props.history.push("/chat");
             }
         })
