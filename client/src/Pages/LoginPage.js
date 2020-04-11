@@ -1,6 +1,8 @@
 import React from 'react';
+import axios from 'axios';
+import { Link } from 'react-router-dom';
+
 import "./styles/LoginPage.scss";
-const axios = require('axios');
 
 function LoginPage(props)
 {
@@ -51,6 +53,7 @@ function LoginPage(props)
                     <input name="username" value={inputs.username} onChange={handleTyping} placeholder="Username"></input>
                     <input name="password" type="password" value={inputs.password} onChange={handleTyping} placeholder="Password"></input>
                     <button type="submit" className="login-page-button">Submit</button>
+                    <p>Not a user? <Link to="/register">Register</Link> </p>
                 </form>
             </div>
         </div>
