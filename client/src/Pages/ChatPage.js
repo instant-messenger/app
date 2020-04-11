@@ -1,5 +1,6 @@
 import React, {useState, useEffect} from 'react';
 import Contacts from '../components/ContactsPanel';
+import ChatFeed from '../components/ChatFeed.js';
 import io from "socket.io-client";
 import axios from 'axios';
 import './styles/ChatPage.scss';
@@ -73,18 +74,13 @@ function ChatPage(props)
 
     return(
         <div className="chat-page-container">
-            <h1>Chat Page</h1>
             {user.username ? <p>Welcome {user.username}</p> : null}
-
             <div className="chat-page-comps">
                 <Contacts isActive={true} size={2} userSocket={props.userSocket} panelName="All Users Panel" />
-                <Contacts isActive={false} size={4} userSocket={props.userSocket} panelName="This is where a chat log component will be in place later. Currently using a ContactsPanel component to view the layout." />
+                <ChatFeed isActive={false} size={4} userSocket={props.userSocket} panelName="This is where a chat log component will be in place later. Currently using a ContactsPanel component to view the layout." />
             </div>
-                
             <input className="chat-page-input" onChange={handleChange} placeholder="Enter Message"/>
-
             <button onClick={handleLogOut}>Log Out</button>
-
         </div>
     )
 }

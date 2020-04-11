@@ -1,5 +1,5 @@
 import React from 'react';
-import { Route } from 'react-router-dom';
+import { Route, Switch } from 'react-router-dom';
 import Nav from './components/Nav';
 import RegisterPage from './Pages/RegisterPage';
 import LoginPage from './Pages/LoginPage';
@@ -11,9 +11,11 @@ function App()
     return (
         <div className="App">
             <Nav />
-            <Route exact path="/login" component={(props) => <LoginPage {...props}/>} />
-            <Route exact path="/register" component={(props) => <RegisterPage {...props}/>} />
-            <Route exact path="/chat" component={(props) => <ChatPage {...props}/>} />
+            <Switch>
+                <Route exact path="/login" component={(props) => <LoginPage {...props}/>} />
+                <Route exact path="/register" component={(props) => <RegisterPage {...props}/>} />
+                <Route exact path="/chat" component={(props) => <ChatPage {...props}/>} />
+            </Switch>
         </div>
     );
 }
