@@ -74,10 +74,10 @@ function ChatPage(props)
 
     return(
         <div className="chat-page-container">
-            {user.username ? <p>Welcome {user.username}</p> : null}
+            {/* {user.username ? <p>Welcome {user.username}</p> : null} */}
             <div className="chat-page-comps">
-                <Contacts isActive={true} size={2} userSocket={props.userSocket} panelName="All Users Panel" />
-                <ChatFeed isActive={false} size={4} userSocket={props.userSocket} panelName="This is where a chat log component will be in place later. Currently using a ContactsPanel component to view the layout." />
+                <Contacts isActive={true} userSocket={props.userSocket} panelName="All Users Panel" />
+                <ChatFeed isActive={false} userSocket={props.userSocket} panelName="This is where a chat log component will be in place later. Currently using a ContactsPanel component to view the layout." />
             </div>
             <input className="chat-page-input" onChange={handleChange} placeholder="Enter Message"/>
             <button onClick={handleLogOut}>Log Out</button>

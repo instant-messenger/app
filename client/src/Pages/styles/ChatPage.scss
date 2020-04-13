@@ -7,9 +7,12 @@
     padding-top: 60px;
 
     .chat-page-comps{
-        background-color: tomato;
         display:flex; 
         flex-direction:row;
+        border: 1px solid red;
+        position: relative;
+        height: 100%;
+        width: 100%;
     }
 
     .chat-page-input {

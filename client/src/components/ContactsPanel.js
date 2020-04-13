@@ -5,7 +5,8 @@ import './styles/ContactsPanel.scss';
 function Contacts(props) {
     return(
         <div style={{flexGrow: props.size}} className="contacts-container">
-            <h2>{props.panelName}</h2>
+            <h2>Instant Messenger</h2>
+            <p>{props.panelName}</p>
             {/* {(props.isActive) ? allUsers.map((f, i) => <h2 key={i}>{f.userName}</h2>) : null} */}
         </div>
     )

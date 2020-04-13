@@ -1,5 +1,7 @@
 import React from 'react'
 
+import './styles/ChatFeed.scss'
+
 const fakeMessages = [
     {
         user: "fakeUser1",
