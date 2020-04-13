@@ -1,17 +1,17 @@
-
 .chat-page-container{
-    background-color: teal;
+    background-color: white;
     padding: 0 2rem 2rem;
     margin: 0;
-    height: 80vh;
+    height: 100vh;
     position: relative;
+    padding-top: 60px;
 
     .chat-page-comps{
         background-color: tomato;
         display:flex; 
         flex-direction:row;
-        
     }
+
     .chat-page-input {
         display: inline-block;
         -webkit-box-sizing: content-box;

@@ -7,7 +7,7 @@ import './styles/nav.scss';
 export default function Nav() {
     return (
         <div className="nav-container">
-            <Link to="/register"><h1>Instant Messenger</h1> </Link>
+            {/* <Link to="/"><h1>Instant Messenger</h1> </Link> */}
             <div className="navlink-container">
                 <NavLink to="/chat">Chat</NavLink>
             </div>

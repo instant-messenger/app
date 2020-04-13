@@ -13,8 +13,8 @@ function App()
             <Nav />
             <Switch>
                 <Route exact path="/login" component={(props) => <LoginPage {...props}/>} />
-                <Route exact path="/register" component={(props) => <RegisterPage {...props}/>} />
                 <Route exact path="/chat" component={(props) => <ChatPage {...props}/>} />
+                <Route exact path="/" component={(props) => <RegisterPage {...props}/>} />
             </Switch>
         </div>
     );

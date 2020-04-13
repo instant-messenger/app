@@ -53,7 +53,7 @@ function LoginPage(props)
                     <input name="username" value={inputs.username} onChange={handleTyping} placeholder="Username"></input>
                     <input name="password" type="password" value={inputs.password} onChange={handleTyping} placeholder="Password"></input>
                     <button type="submit" className="login-page-button">Submit</button>
-                    <p>Not a user? <Link to="/register">Register</Link> </p>
+                    <p>Not a user? <Link to="/">Register</Link> </p>
                 </form>
             </div>
         </div>

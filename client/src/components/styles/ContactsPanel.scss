@@ -1,8 +1,14 @@
-
 .contacts-container{
-    flex-grow: 1;
-    background-color: violet;
-    padding: 0;
+    background-color: black;
+    color: white;
+    box-shadow: 0px 0px 14px 0px rgba(0,0,0,0.35);
     margin: 0;
-    border: solid red 1px;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 250px;
+    height: 100%;
+    padding: 20px;
+    padding-top: 65px;
+    z-index: 15;
 }
