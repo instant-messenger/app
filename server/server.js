@@ -31,7 +31,8 @@ mongoose.connect('mongodb://localhost:27017/messengerDB', {useUnifiedTopology: t
 
 const userSchema = new mongoose.Schema({
 	username: String,
-	password: String,
+    password: String,
+    friends: [String]
 });
 
 userSchema.plugin(passportLocalMongoose);
@@ -69,7 +70,7 @@ app.post('/login', function(req, res)
 
 app.post('/register', function(req, res)
 {
-    UserMod.register({username: req.body.username}, req.body.password, function(err, newUser)
+    UserMod.register({username: req.body.username, friends: []}, req.body.password, function(err, newUser)
     {
         if(err)
             console.log(err);
@@ -87,7 +88,7 @@ app.get("/isAuth", function(req, res)
 {
     if(req.isAuthenticated())
     {
-        const userData = {_id: req.user._id, username: req.user.username};
+        const userData = {_id: req.user._id, username: req.user.username, friends: req.user.friends};
         res.status(200).send(userData);
     }
     else
@@ -99,7 +100,7 @@ app.get("/isAuth", function(req, res)
 app.get('/logout', function(req, res)
 {
     if(req.isAuthenticated())
-    {    
+    {
         req.logout();
         res.status(200).send();
     }
@@ -107,6 +108,31 @@ app.get('/logout', function(req, res)
     {
         res.status(401).send();
     }
+})
+
+async function getUserFriends(userID)
+{
+    const user = await UserMod.findById(userID);
+
+    const userFriends = user.friends.map(async (friendID) => {
+        const friend = await UserMod.findById(friendID);
+        return (friend);
+    })
+
+    return await Promise.all(userFriends);
+}
+
+app.get('/getFriends/:id', async function(req, res)
+{
+    if(!req.isAuthenticated()) 
+    { 
+        res.status(401).send();
+        return; 
+    }
+
+    const userID = req.params.id;
+    const friends = await getUserFriends(userID);
+    res.status(200).send(friends);
 })
 
 // ----------------Database End-----------------
@@ -120,16 +146,11 @@ io.on('connection', function(socket)
         console.log(username + " is typing");
     });
 
-    // This is should be called when a user is directed to the /chat page
-    // A param called 'userID' is needed. 
-    //TODO:
-        // 1) Add a 'friends' array to each user in DB. It should store other users' ids.
-        // 2) Return the list of friends and add them to the array below - then return to client.
-    socket.on('findFriends', function() 
-    {
-        const friends = [];
-
-        io.emit('getFriends', friends);
+    // Needs a userID to search their list of friends.
+    socket.on('findFriends', async function(userID) 
+    {        
+        const friends = await getUserFriends(userID);
+        io.emit("getFriends", friends);
     });
 });
 

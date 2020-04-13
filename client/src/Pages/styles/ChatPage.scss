@@ -6,6 +6,11 @@
     position: relative;
     padding-top: 60px;
 
+    .chat-page-username{
+        color: black;
+        //padding: 10px 0;
+    }
+
     .chat-page-comps{
         display:flex; 
         flex-direction:row;

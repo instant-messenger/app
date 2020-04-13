@@ -11,14 +11,14 @@ import './styles/ChatPage.scss';
 
 function ChatPage(props)
 {
-    const [user, setUser] = useState({_id: "", username: ""});
-    const [socket, setSocket] = useState();
+    const [user, setUser] = useState({_id: "", username: "", friends: []});
+    const [userSocket, setSocket] = useState();
 
     useEffect(() => {
         const socket = io('http://localhost:3500/');
         setSocket(socket);
-
-        axios.get("http://localhost:3500/isAuth", 
+        
+        axios.get("http://localhost:3500/isAuth/", 
         {
             withCredentials: true,
             headers: {
@@ -29,8 +29,8 @@ function ChatPage(props)
         .then((response) => 
         {
             if(response.status === 200)
-            {
-                setUser({_id: response.data._id, username: response.data.username});
+            {         
+                setUser({_id: response.data._id, username: response.data.username, friends: response.data.friends});
             }
             else
             {
@@ -46,7 +46,7 @@ function ChatPage(props)
 
     function handleChange(e)
     {
-        socket.emit("chat", user.username);
+        userSocket.emit("chat", user.username);
     }
 
     function handleLogOut(e)
@@ -74,10 +74,10 @@ function ChatPage(props)
 
     return(
         <div className="chat-page-container">
-            {/* {user.username ? <p>Welcome {user.username}</p> : null} */}
+            {user.username ? <h1 className="chat-page-username">Welcome {user.username}</h1> : null}
             <div className="chat-page-comps">
-                <Contacts isActive={true} userSocket={props.userSocket} panelName="All Users Panel" />
-                <ChatFeed isActive={false} userSocket={props.userSocket} panelName="This is where a chat log component will be in place later. Currently using a ContactsPanel component to view the layout." />
+                <Contacts userID={user._id} userSocket={userSocket} size={2} />
+                <ChatFeed size={10}/>
             </div>
             <input className="chat-page-input" onChange={handleChange} placeholder="Enter Message"/>
             <button onClick={handleLogOut}>Log Out</button>
