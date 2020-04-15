@@ -74,7 +74,6 @@ function ChatPage(props)
 
     return(
         <div className="chat-page-container">
-            {user.username ? <h1 className="chat-page-username">Welcome {user.username}</h1> : null}
             <div className="chat-page-comps">
                 <Contacts userID={user._id} userSocket={userSocket} size={2} />
                 <ChatFeed size={10}/>
