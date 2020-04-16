@@ -1,0 +1,19 @@
+.friend-container {
+    display: flex;
+    margin-top: 10px;
+    background-color: white;
+    width: 200px;
+    color: black;
+    align-items: center;
+    border-radius: 5px;
+
+    .profile-image {
+        height: 50px;
+        width: 50px;
+        background-size: contain;
+    }
+
+    .username {
+        width: 100%;
+    }
+}
