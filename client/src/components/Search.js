@@ -41,8 +41,12 @@ export default function Search() {
 
     const handleChanges = (e) => {
         setSearchInput(e.target.value)
-        const result = searcher.search(searchInput)
-        setResultFriends(result)
+        if(e.target.value.length == 0) {
+            setResultFriends([])
+        } else {
+            const result = searcher.search(searchInput)
+            setResultFriends(result)
+        }
     }
 
     return (
