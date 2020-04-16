@@ -63,8 +63,10 @@ function Contacts(props) {
 
     return(
         <div style={{flexGrow: props.size}} className="contacts-container">
-            <h2>Friends List</h2>
-            {friends.map((friend) => <Link to={`/chat/${friend.id}`}><Friend key={friend.id} friend={friend}/></Link>)}
+            <h2>Friends</h2>
+            <div className="friends-list-container">
+                {friends.map((friend) => <Link key={friend.id} to={`/chat/${friend.id}`}><Friend friend={friend}/></Link>)}
+            </div>
         </div>
     )
 }

@@ -15,10 +15,10 @@ const fakeMessages = [
 
 export default function ChatFeed() {
     return (
-        <div class="chat-feed-container">
-        {fakeMessages.map((message) => {
+        <div className="chat-feed-container">
+        {fakeMessages.map((message, index) => {
             return (
-                <div>message.user</div>
+                <div key={index}>message.user</div>
         )
         })}
         </div>

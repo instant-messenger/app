@@ -1,4 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
+import FuzzySearch from 'fuzzy-search';
+import Friend from './Friend';
 
 // STYLES
 import './styles/Search.scss';
@@ -31,12 +33,31 @@ const fakeFriends = [
     },
 ]
 
+function searchFriends(friendsList, username) {
+
+};
+
 export default function Search() {
+    const [ isSearching, setIsSearching ] = useState(false)
+    const [ resultFriends, setResultFriends ] = useState(fakeFriends)
+
+    const searcher = new FuzzySearch(fakeFriends, ["username"])
+
+    const handleChanges = (e) => {
+        const result = searcher.search(e.target.value)
+        console.log(result)
+    }
+
     return (
         <div className="search-container">
             <form>
-                <input type="text" placeholder="&#128269; Search"/>
+                <input onChange={handleChanges} type="text" placeholder="&#128269; Search"/>
             </form>
+            <div className="result-friends-container">
+                { resultFriends.map((friend) => {
+                        return <Friend friend={friend}/>
+                    }) } 
+            </div>
         </div>
     )
 }
