@@ -9,7 +9,7 @@ export default function Nav() {
         <div className="nav-container">
             <Link to="/"><h1>Instant Messenger</h1> </Link>
             <div className="navlink-container">
-                <NavLink to="/chat">Chat</NavLink>
+                <NavLink to="/chat/main">Chat</NavLink>
             </div>
         </div>
     )
