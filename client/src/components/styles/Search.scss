@@ -1,0 +1,25 @@
+.search-container {
+    position: relative;
+
+    form {
+        input {
+            height: 40px;
+            width: 400px;
+            border-radius: 5px;
+            padding: 5px;
+            font-size: 2rem;
+            border: none;
+        }
+    }
+
+    .result-friends-container {
+        background-color: whitesmoke;
+        border-radius: 0 0 5px 5px;
+        position: absolute;
+        z-index: 10;
+        width: 400px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+}

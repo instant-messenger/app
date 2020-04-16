@@ -1,4 +1,5 @@
 import React, {useState, useEffect} from 'react';
+import { Link } from 'react-router-dom';
 import './styles/ContactsPanel.scss';
 import axios from 'axios';
 
@@ -62,8 +63,10 @@ function Contacts(props) {
 
     return(
         <div style={{flexGrow: props.size}} className="contacts-container">
-            <h2>Friends List</h2>
-            {friends.map((friend) => <Friend key={friend.id} friend={friend}/>)}
+            <h2>Friends</h2>
+            <div className="friends-list-container">
+                {friends.map((friend) => <Link key={friend.id} to={`/chat/${friend.id}`}><Friend friend={friend}/></Link>)}
+            </div>
         </div>
     )
 }
