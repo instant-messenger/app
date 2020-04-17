@@ -13,14 +13,16 @@ const fakeMessages = [
     }
 ]
 
-export default function ChatFeed() {
+export default function ChatFeed(props) {
     return (
-        <div className="chat-feed-container">
-        {fakeMessages.map((message, index) => {
-            return (
-                <div key={index}>message.user</div>
-        )
-        })}
+        <div className="chat-feed-container" style={{flexGrow: props.size}}>
+            {fakeMessages.map((message, i) => {
+                return (
+                    <div key={i}>
+                        <h2>{message.message}</h2>
+                    </div>
+                )
+            })}
         </div>
     )
 }

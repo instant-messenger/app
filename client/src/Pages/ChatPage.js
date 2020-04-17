@@ -13,6 +13,7 @@ function ChatPage(props)
 {
     const [user, setUser] = useState({_id: "", username: "", friends: []});
     const [userSocket, setSocket] = useState();
+    const [messageText, setMessageText] = useState();
 
     useEffect(() => {
         const socket = io('http://localhost:3500/');
@@ -44,11 +45,6 @@ function ChatPage(props)
         
     }, [props.history]);
 
-    function handleChange(e)
-    {
-        userSocket.emit("chat", user.username);
-    }
-
     function handleLogOut(e)
     {
         axios.get("http://localhost:3500/logout", 
@@ -71,14 +67,50 @@ function ChatPage(props)
             console.log(err);
         })
     }
+    
+    function handleChange(e)
+    {
+        e.preventDefault();
+        setMessageText(e.target.value);
+        userSocket.emit("chat", user.username);
+    }
+
+    // function sendMessage(e)
+    // {
+    //     e.preventDefault();
+    //     const url = "http://localhost:3500/postmess/";
+
+    //     axios.post(url, {content: messageText}, 
+    //     {
+    //         withCredentials: true,
+    //         headers: {
+    //             'Content-Type': 'application/json',
+    //         },
+    //         credentials: "same-origin"
+    //     })
+    //     .then((res) => {
+    //         console.log(res);
+    //     })
+    //     .catch((err) => {
+    //         console.log(err);
+    //     })
+    // }
 
     return(
         <div className="chat-page-container">
+            {user.username ? <h1 className="chat-page-username">Welcome {user.username}</h1> : null}
+
             <div className="chat-page-comps">
-                <Contacts userID={user._id} userSocket={userSocket} size={2} />
+                <Contacts userID={user._id} userSocket={userSocket} size={1} />
                 <ChatFeed size={10}/>
             </div>
-            <input className="chat-page-input" onChange={handleChange} placeholder="Enter Message"/>
+
+            {/* TODO Will update message sent in here */}
+            <form>
+                <input className="chat-page-input" onChange={handleChange} placeholder="Enter Message"/>
+                <button type="submit">Send</button>
+            </form>
+                
             <button onClick={handleLogOut}>Log Out</button>
         </div>
     )

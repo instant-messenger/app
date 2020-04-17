@@ -35,9 +35,19 @@ const userSchema = new mongoose.Schema({
     friends: [String]
 });
 
+const roomSchema = new mongoose.Schema({
+    members: [String],
+    messages: [{sender: String, content: String}]
+})
+
+// group schema will contain the following properties
+    // _id, array of user ids, array of messages objects 
+    // (the message object will contain: sender id, content, date and time) 
+
 userSchema.plugin(passportLocalMongoose);
 
 const UserMod = new mongoose.model("users", userSchema);
+const RoomMod = new mongoose.model("rooms", roomSchema);
 
 passport.use(UserMod.createStrategy());
 passport.serializeUser(UserMod.serializeUser());
@@ -110,6 +120,85 @@ app.get('/logout', function(req, res)
     }
 })
 
+
+app.get('/getFriends/:id/', async function(req, res)
+{
+    if(!req.isAuthenticated()) 
+    { 
+        res.status(401).send();
+        return; 
+    }
+    
+    const userID = req.params.id;
+    const friends = await getUserFriends(userID);
+    res.status(200).send(friends);
+})
+
+app.get("/testroom/", function(req, res)
+{
+    const newRoom = new RoomMod({
+        members: ["5e93f958cd94be1cc8b55b08", "5e927b7e658b9430c4382921"],
+        messages: [{
+            sender: "5e927b7e658b9430c4382921",
+            content: "Hi"
+        }, {
+            sender: "5e93f958cd94be1cc8b55b08",
+            content: "Cancel That"
+        }]
+    });
+    
+    newRoom.save(function(err)
+    {
+        if(!err)
+        {
+            res.status(200).send("You Rock!");
+        }
+    });
+})
+
+app.post('/postmess/', function(req, res)
+{
+    const message = (req.body.content);
+    const senderID = (req.user._id);
+    
+    RoomMod.findById("5e95585b63125b64dc3d089f", function(err, foundRoom)
+    {
+        if(foundRoom)
+        {
+            foundRoom.messages.push({sender: senderID, content: message});
+            
+            foundRoom.save(function(err)
+            {
+                if(!err)
+                {
+                    res.status(200).send();
+                }
+            });
+        }
+    });
+    
+})
+
+app.get("/rooms/", async function(req, res)
+{
+    const all = await RoomMod.findById("5e95585b63125b64dc3d089f");
+    res.status(200).send(all);
+})
+
+app.get("/search/:name/", async function(req, res)
+{
+    if(!req.isAuthenticated())
+    {
+        res.status(401).send();
+        return;
+    }
+
+    const user = await getSearchResult(req.params.name);
+
+    res.status(200).send(user);
+})
+
+// ----------------Database End-----------------
 async function getUserFriends(userID)
 {
     const user = await UserMod.findById(userID);
@@ -122,20 +211,20 @@ async function getUserFriends(userID)
     return await Promise.all(userFriends);
 }
 
-app.get('/getFriends/:id', async function(req, res)
+function createNewRoom(memberIDs)
 {
-    if(!req.isAuthenticated()) 
-    { 
-        res.status(401).send();
-        return; 
-    }
+    const newRoom = new RoomMod({
+        members: memberIDs,
+        messages: []
+    });
 
-    const userID = req.params.id;
-    const friends = await getUserFriends(userID);
-    res.status(200).send(friends);
-})
+    newRoom.save();
+}
 
-// ----------------Database End-----------------
+async function getSearchResult(name)
+{
+    return await UserMod.findOne({username: name});
+}
 
 // ----------------Socket IO Start----------------------
 io.on('connection', function(socket)
@@ -146,12 +235,6 @@ io.on('connection', function(socket)
         console.log(username + " is typing");
     });
 
-    // Needs a userID to search their list of friends.
-    socket.on('findFriends', async function(userID) 
-    {        
-        const friends = await getUserFriends(userID);
-        io.emit("getFriends", friends);
-    });
 });
 
 
