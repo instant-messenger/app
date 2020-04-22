@@ -16,6 +16,9 @@ const fakeMessages = [
 export default function ChatFeed(props) {
     return (
         <div className="chat-feed-container" style={{flexGrow: props.size}}>
+            {props.openRoom.length !== 0 ? <h2>Room ID: {props.openRoom}</h2> : null}
+            {props.currentMessage.length !== 0 ? <h2>{props.currentMessage}</h2> : null}
+
             {fakeMessages.map((message, i) => {
                 return (
                     <div key={i}>

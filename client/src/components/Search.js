@@ -70,7 +70,7 @@ export default function Search() {
                 <input name="search" value={searchInput} onChange={handleSearch} type="text" placeholder="&#128269; Search"/>
             </form>
             <div className="result-friends-container">
-                {resultFriends ? <Friend key={resultFriends._id} friend={resultFriends} /> : null}
+                {resultFriends ? <Friend isFriend={false} key={resultFriends._id} friend={resultFriends} /> : null}
             </div>
         </div>
     )

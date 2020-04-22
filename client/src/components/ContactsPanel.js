@@ -1,7 +1,7 @@
 import React, {useState, useEffect} from 'react';
 import './styles/ContactsPanel.scss';
 import axios from 'axios';
-import FuzzySearch from 'fuzzy-search';
+//import FuzzySearch from 'fuzzy-search';
 
 
 // Components
@@ -42,7 +42,7 @@ function Contacts(props) {
     const [filterText, setFilter] = useState("");
     const [displayedFriends, setDisplayFriends] = useState([]);
 
-    const searcher = new FuzzySearch(allFriends, ["username"])
+    //const searcher = new FuzzySearch(allFriends, ["allFriends", "username"])
 
     useEffect(() => {
         if(!props.userID) { return; }
@@ -76,18 +76,23 @@ function Contacts(props) {
         } 
         else 
         {
-            const result = searcher.search(e.target.value)
-            setDisplayFriends(result)
+            const filtered = (allFriends).filter((group) => {
+                return group.groupFriends[0].username.includes(e.target.value);
+            });
+
+            setDisplayFriends(filtered);
         }
     }
 
     return(
         <div className="contacts-container" style={{flexGrow: props.size}}>
             <h2>Friends</h2>
-            <input placeholder="Search Friends" onChange={handleChanges} value = {filterText}/>
+            <input placeholder="Search Friends" onChange={handleChanges} value={filterText}/>
 
             <div className="friends-list-container">
-                {displayedFriends.map((friend) => <Friend key = {friend._id} friend={friend}/>)}
+                {displayedFriends.map((friend) => 
+                    <Friend openChat={props.openChat} isFriend={true} key={friend.groupFriends[0]._id} 
+                        roomID={friend.roomID} friend={friend.groupFriends[0]} />)}
             </div>
         </div>
     )
