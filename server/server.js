@@ -208,6 +208,56 @@ app.post("/addNewFriend", async function(req, res)
 
 })
 
+app.get("/getMessages/:roomID", async function(req, res)
+{
+    if(!req.isAuthenticated())
+    {
+        res.status(401).send();
+        return;
+    }
+
+    const roomID = req.params.roomID;
+    const room = await RoomMod.findById(roomID);
+    res.status(200).send(room.messages);
+});
+
+app.post("/sendMess", async function(req, res)
+{
+    if(!req.isAuthenticated())
+    {
+        res.status(400).send();
+        return;
+    }
+
+    try 
+    {
+        const messageContent = req.body.messageText;
+        const senderName = req.user.username;
+        const roomID = req.body.openRoomID;
+
+        const room = await RoomMod.findById(roomID);
+
+        room.messages.push({sender: senderName, content: messageContent});
+        room.save(function(err)
+        {
+            if(err)
+            {
+                console.log(err);
+                res.status(404).send();
+            }
+            else
+            {
+                res.status(200).send();
+            }
+        });
+    } 
+    catch (err) 
+    {
+        console.log(err);
+        res.status(400).send();
+    }
+});
+
 // ----------------Database End-----------------
 
 // Returns an array that's populated with room ids and an array of friends belonging to that room

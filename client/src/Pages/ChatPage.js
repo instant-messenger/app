@@ -75,10 +75,41 @@ function ChatPage(props)
         setMessageText(e.target.value);
         userSocket.emit("chat", user.username);
     }
+
+    async function sendMessage()
+    {
+        const url = "http://localhost:3500/sendMess/";
+        
+        const res = await axios.post(url, {messageText, openRoomID}, 
+            {
+            withCredentials: true,
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: "same-origin"
+        });
+
+        return res.status;
+    }
+    
+    async function handleMessageSend(e)
+    {
+        e.preventDefault();
+        if(openRoomID.length === 0 || messageText.length === 0) { return; }        
+        
+        const postResStatus = await sendMessage();
+        
+        if(postResStatus === 200)
+        {
+            setMessageText("");
+        }
+    }
+    
     
     function openChat(roomID)
     {
         setRoomID(roomID);
+        setMessageText("");
     }
 
     return(
@@ -91,8 +122,8 @@ function ChatPage(props)
             </div>
 
             {/* TODO Will update message sent in here */}
-            <form>
-                <input className="chat-page-input" onChange={handleChange} placeholder="Enter Message"/>
+            <form onClick={handleMessageSend}>
+                <input className="chat-page-input" onChange={handleChange} value={messageText} placeholder="Enter Message"/>
                 <button type="submit">Send</button>
             </form>
                 
@@ -102,24 +133,3 @@ function ChatPage(props)
 }
 
 export default ChatPage;
-
-// function sendMessage(e)
-// {
-//     e.preventDefault();
-//     const url = "http://localhost:3500/postmess/";
-
-//     axios.post(url, {content: messageText}, 
-//     {
-//         withCredentials: true,
-//         headers: {
-//             'Content-Type': 'application/json',
-//         },
-//         credentials: "same-origin"
-//     })
-//     .then((res) => {
-//         console.log(res);
-//     })
-//     .catch((err) => {
-//         console.log(err);
-//     })
-// }
