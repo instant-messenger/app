@@ -15,36 +15,62 @@ function ChatPage(props)
     const [userSocket, setSocket] = useState();
     const [messageText, setMessageText] = useState("");
     const [openRoomID, setRoomID] = useState("");
+    const [isUpdated, setIsUpdated] = useState(true);
 
     useEffect(() => {
         const socket = io('http://localhost:3500/');
         setSocket(socket);
         
-        axios.get("http://localhost:3500/isAuth/", 
+        async function getAuthenticationStatus()
         {
-            withCredentials: true,
-            headers: {
-                'Content-Type': 'application/json',
-              },
-            credentials: "same-origin"
-        })
-        .then((response) => 
-        {
-            if(response.status === 200)
-            {         
-                setUser({_id: response.data._id, username: response.data.username, friends: response.data.friends});
-            }
-            else
+            let responseStatus = 0;
+            await axios.get("http://localhost:3500/isAuth/", 
             {
-                props.history.push("/")
-            }
-        })
-        .catch((err) => 
+                withCredentials: true,
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                credentials: "same-origin"
+            })
+            .then((res) => 
+            {
+                setUser({_id: res.data._id, username: res.data.username, friends: res.data.friends});
+                responseStatus = res.status;
+            })
+            .catch((err) =>
+            {
+                responseStatus = err.response.status;
+            })
+
+            return responseStatus;
+        }
+            
+        async function checkAuthentication()
         {
-            console.log(err);
-        })
+            const authenticationStatus = await getAuthenticationStatus();
+
+            if(authenticationStatus !== 200)
+            {
+                props.history.push('/');
+            }
+        }
+        
+        // Comment out the following line when styling chat page
+        checkAuthentication();
         
     }, [props.history]);
+
+    useEffect(() => {
+        if(userSocket)
+        {
+            userSocket.on("requestUpdate", function()
+            {
+                if(!user._id) { return; }
+
+                setIsUpdated(false);
+            })
+        }
+    }, [userSocket, user._id]);
 
     function handleLogOut(e)
     {
@@ -73,7 +99,7 @@ function ChatPage(props)
     {
         e.preventDefault();
         setMessageText(e.target.value);
-        userSocket.emit("chat", user.username);
+        //userSocket.emit("chat", user.username);
     }
 
     async function sendMessage()
@@ -95,21 +121,23 @@ function ChatPage(props)
     async function handleMessageSend(e)
     {
         e.preventDefault();
-        if(openRoomID.length === 0 || messageText.length === 0) { return; }        
-        
+        if(openRoomID.length === 0 || messageText.length === 0) { return; }
         const postResStatus = await sendMessage();
         
         if(postResStatus === 200)
         {
             setMessageText("");
+            userSocket.emit("messageNow", openRoomID);
         }
     }
     
-    
     function openChat(roomID)
     {
+        if(openRoomID === roomID) { return; }
+
         setRoomID(roomID);
         setMessageText("");
+        userSocket.emit("joinRoom", roomID);
     }
 
     return(
@@ -118,11 +146,11 @@ function ChatPage(props)
 
             <div className="chat-page-comps">
                 <Contacts openChat={openChat} userID={user._id} userSocket={userSocket} size={1} />
-                <ChatFeed openRoom={openRoomID} currentMessage={messageText} size={10}/>
+                <ChatFeed isUpdated={isUpdated} openRoom={openRoomID} handleUpdate={setIsUpdated} userSocket={userSocket} size={10}/>
             </div>
 
             {/* TODO Will update message sent in here */}
-            <form onClick={handleMessageSend}>
+            <form onSubmit={handleMessageSend}>
                 <input className="chat-page-input" onChange={handleChange} value={messageText} placeholder="Enter Message"/>
                 <button type="submit">Send</button>
             </form>

@@ -41,10 +41,6 @@ const roomSchema = new mongoose.Schema({
     messages: [{sender: String, content: String}]
 });
 
-// group schema will contain the following properties
-    // _id, array of user ids, array of messages objects 
-    // (the message object will contain: sender id, content, date and time) 
-
 userSchema.plugin(passportLocalMongoose);
 
 const UserMod = new mongoose.model("users", userSchema);
@@ -59,7 +55,7 @@ passport.deserializeUser(UserMod.deserializeUser());
 app.post('/login', function(req, res)
 {
     const returningUser = new UserMod({
-		username: req.body.username,
+        username: req.body.username,
 		password: req.body.password
     });
     
@@ -104,7 +100,7 @@ app.get("/isAuth", function(req, res)
     }
     else
     {
-        res.status(400).send("Error - Not authenticated");
+        res.status(401).send("Not authenticated");
     }
 });
 
@@ -121,6 +117,7 @@ app.get('/logout', function(req, res)
     }
 })
 
+// Using a user ID, this route retrieves that user's list of friends and room IDs
 app.get('/getFriends/:id/', async function(req, res)
 {
     if(!req.isAuthenticated()) 
@@ -134,7 +131,7 @@ app.get('/getFriends/:id/', async function(req, res)
     res.status(200).send(friends);
 })
 
-
+// Searches for a user in the database and returns it to the Search Component in the client side
 app.get("/search/:name/", async function(req, res)
 {
     if(!req.isAuthenticated())
@@ -148,6 +145,7 @@ app.get("/search/:name/", async function(req, res)
     res.status(200).send(user);
 });
 
+// Using two user IDs, it retrieves both users, add each other's IDs to their 'friends' array, and creates a new room so they can chat in.
 app.post("/addNewFriend", async function(req, res)
 {
     if(!req.isAuthenticated())
@@ -208,6 +206,7 @@ app.post("/addNewFriend", async function(req, res)
 
 })
 
+// Retrieves messages from a specified room in the database
 app.get("/getMessages/:roomID", async function(req, res)
 {
     if(!req.isAuthenticated())
@@ -218,9 +217,10 @@ app.get("/getMessages/:roomID", async function(req, res)
 
     const roomID = req.params.roomID;
     const room = await RoomMod.findById(roomID);
-    res.status(200).send(room.messages);
+    res.status(200).send({messages: room.messages});
 });
 
+// Posts a message to a room that should exist in the database
 app.post("/sendMess", async function(req, res)
 {
     if(!req.isAuthenticated())
@@ -277,6 +277,7 @@ async function getUserFriends(userID)
     }));
 }
 
+// Using the user's input in the Search Component, it will look for a specified username in the database
 async function getSearchResult(name)
 {
     return await UserMod.findOne({username: name});
@@ -290,60 +291,28 @@ io.on('connection', function(socket)
     {
         console.log(username + " is typing");
     });
-    
+
+    // This is called when a user clicks on a friend from the Contacts Panel Component. 
+    // More than two users can be in a room.
+    socket.on('joinRoom', function(roomID)
+    {
+        socket.leaveAll();
+        socket.join(roomID);
+        socket.emit("requestUpdate");
+    });
+
+    // This is called when a user sends a message to friends in a room. 
+    // The server then notifies every user in the room to update their Chat Feed Component
+    socket.on("messageNow", function(openRoomID)
+    {
+        io.in(openRoomID).emit("requestUpdate");
+
+        // To see how many client sockets are in the specified room.
+        // var room = io.sockets.adapter.rooms[openRoomID];
+        // console.log("Sent: " + room.length)
+    });
+
 });
 
 
 module.exports = server;
-
-// Some current test code.
-// app.get("/testroom/", function(req, res)
-// {
-//     const newRoom = new RoomMod({
-//         members: ["5e93f958cd94be1cc8b55b08", "5e927b7e658b9430c4382921"],
-//         messages: [{
-//             sender: "5e927b7e658b9430c4382921",
-//             content: "Hi"
-//         }, {
-//             sender: "5e93f958cd94be1cc8b55b08",
-//             content: "Cancel That"
-//         }]
-//     });
-    
-//     newRoom.save(function(err)
-//     {
-//         if(!err)
-//         {
-//             res.status(200).send("You Rock!");
-//         }
-//     });
-// })
-
-// app.post('/postmess/', function(req, res)
-// {
-//     const message = (req.body.content);
-//     const senderID = (req.user._id);
-    
-//     RoomMod.findById("5e95585b63125b64dc3d089f", function(err, foundRoom)
-//     {
-//         if(foundRoom)
-//         {
-//             foundRoom.messages.push({sender: senderID, content: message});
-            
-//             foundRoom.save(function(err)
-//             {
-//                 if(!err)
-//                 {
-//                     res.status(200).send();
-//                 }
-//             });
-//         }
-//     });
-    
-// })
-
-// app.get("/rooms/", async function(req, res)
-// {
-//     const all = await RoomMod.findById("5e95585b63125b64dc3d089f");
-//     res.status(200).send(all);
-// })

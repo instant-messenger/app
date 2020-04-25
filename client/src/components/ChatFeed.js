@@ -17,31 +17,47 @@ export default function ChatFeed(props)
 {
     const [messages, setMessages] = useState([]);
     
+    const {isUpdated, openRoom, handleUpdate} = props;
+    
     useEffect(() => 
     {
-        if(props.openRoom.length === 0) { return; }
-
-        const url = "http://localhost:3500/getMessages/" + props.openRoom;
-        axios.get(url, 
+        async function getMessages()
         {
-            withCredentials: true,
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            credentials: "same-origin"
-        })
-        .then((res) => {
-            setMessages(res.data);
-        })
-        .catch((err) => {
-            console.log(err);
-        })
-    }, [props.openRoom]);
+            const url = "http://localhost:3500/getMessages/" + openRoom;
+            const res = await axios.get(url, 
+            {
+                withCredentials: true,
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                credentials: "same-origin"
+            })
+
+            if(res.status === 200)
+            {
+                setMessages(res.data.messages);
+            }
+            
+            return res.status;
+        }
+        
+        async function updateMessages()
+        {
+            const resStatus = await getMessages();
+            handleUpdate(resStatus === 200);
+        }
+        
+        if(!isUpdated)
+        {
+            updateMessages();
+        }
+
+    }, [openRoom, isUpdated, handleUpdate]);
+
 
     return (
         <div className="chat-feed-container" style={{flexGrow: props.size}}>
             {props.openRoom.length !== 0 ? <h2>Room ID: {props.openRoom}</h2> : null}
-            {props.currentMessage.length !== 0 ? <h2>{props.currentMessage}</h2> : null}
 
             {messages.map((message, i) => {
                 return (
