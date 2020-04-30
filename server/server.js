@@ -98,17 +98,13 @@ app.get("/isAuth", function(req, res)
 {
     if(req.isAuthenticated())
     {
-        const userData = {_id: req.user._id, 
-                        username: req.user.username, 
-                        friends: req.user.friends, 
-                        roomIDs: req.user.roomIDs, 
-                        friendReqs: req.user.friendReqs};
+        const userData = {_id: req.user._id, username: req.user.username}
         
-        res.status(200).send(userData);
+        res.send({status: 200, userData});
     }
     else
     {
-        res.status(201).send();
+        res.send({status: 401, message: "User is not Authenticated"});
     }
 });
 
@@ -117,11 +113,11 @@ app.get('/logout', function(req, res)
     if(req.isAuthenticated())
     {
         req.logout();
-        res.status(200).send();
+        res.send({status: 200, message: "Successful Logout"});
     }
     else
     {
-        res.status(401).send();
+        res.send({status: 401, message: "Unable to Logout"});
     }
 });
 
@@ -130,7 +126,7 @@ app.get('/getFriends', async function(req, res)
 {
     if(!req.isAuthenticated()) 
     { 
-        res.status(401).send();
+        res.send({status: 401, message: "User is not Authenticated"});
         return; 
     }
     
@@ -151,7 +147,7 @@ app.get("/search/:name/", async function(req, res)
 {
     if(!req.isAuthenticated())
     {
-        res.status(401).send();
+        res.send({status: 401, message: "User is not Authenticated"});
         return;
     }
 
@@ -193,7 +189,7 @@ app.post("/sendFriendReq", async function(req, res)
 {
     if(!req.isAuthenticated())
     {
-        res.send({status: 401, message: "Not Authenticated"});
+        res.send({status: 401, message: "User is not Authenticated"});
         return;
     }
 
@@ -226,7 +222,7 @@ app.post("/addNewFriend", async function(req, res)
 {
     if(!req.isAuthenticated())
     {
-        res.status(401).send();
+        res.send({status: 401, message: "User is not Authenticated"});
         return;
     }
         
@@ -286,7 +282,7 @@ app.get("/getMessages/:roomID", async function(req, res)
 {
     if(!req.isAuthenticated())
     {
-        res.status(401).send();
+        res.send({status: 401, message: "User is not Authenticated"});
         return;
     }
 
@@ -294,9 +290,9 @@ app.get("/getMessages/:roomID", async function(req, res)
     const room = await RoomMod.findById(roomID);
 
     if(room.members.includes(req.user.id))
-        res.status(200).send({messages: room.messages});
+        res.send({status: 200, messages: room.messages});
     else
-        req.status(401).send();
+        req.send({status: 500, err: "Unable to get Messages"});
 });
 
 // Posts a message to a room that should exist in the database
@@ -304,7 +300,7 @@ app.post("/sendMess", async function(req, res)
 {
     if(!req.isAuthenticated())
     {
-        res.status(400).send();
+        res.send({status: 401, message: "User is not Authenticated"});
         return;
     }
 
@@ -318,12 +314,12 @@ app.post("/sendMess", async function(req, res)
         room.messages.push({sender: senderName, content: messageContent});
 
         room.save();
-        res.status(200).send();
+        res.send({status: 200, message: "Message was sent successfully"});
     }
     catch (err) 
     {
         console.log(err);
-        res.status(400).send();
+        res.send({status: 500, message: "Unable to send message"});
     }
 });
 
@@ -331,7 +327,7 @@ app.get("/getFriendReqs", async function(req, res)
 {
     if(!req.isAuthenticated())
     {
-        res.send({status: 401, message: "User Not Authenticated"});
+        res.send({status: 401, message: "User is not Authenticated"});
         return;
     }
 
@@ -389,9 +385,9 @@ async function getSearchResult(name)
 io.on('connection', function(socket)
 {
     // This is called when a user is typing on the input box in the /chat page
-    socket.on('chat', function(username)
+    socket.on('chat', function(chatInfo)
     {
-        console.log(username + " is typing");
+        socket.to(chatInfo.roomID).emit('typing', chatInfo.username);
     });
 
     // This is called when a user clicks on a friend from the Contacts Panel Component. 

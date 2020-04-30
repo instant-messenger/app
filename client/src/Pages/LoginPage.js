@@ -14,25 +14,16 @@ function LoginPage(props)
     React.useEffect(() => {
         async function getAuthenticationStatus()
         {
-            let responseStatus = 0;
-            await axios.get("http://localhost:3500/isAuth/", 
+            const res = await axios.get("http://localhost:3500/isAuth/", 
             {
                 withCredentials: true,
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 credentials: "same-origin"
-            })
-            .then((res) => 
-            {
-                responseStatus = res.status;
-            })
-            .catch((err) =>
-            {
-                responseStatus = err.response.status;
-            })
+            });
 
-            return responseStatus;
+            return res.data.status;
         }
             
         async function checkAuthentication()
@@ -70,10 +61,6 @@ function LoginPage(props)
         if(res.data.status === 200)
         {
             props.history.push("/chat");
-        }
-        else
-        {
-            console.log(res.data.message);
         }
     }
     
