@@ -37,34 +37,55 @@ import Friend from './Friend';
 
 // This component will display a user's list of friends.
 function Contacts(props) {
-    
     const [allFriends, setAllFriends] = useState([]);
+    const [allRequests, setRequests] = useState([]);
     const [filterText, setFilter] = useState("");
     const [displayedFriends, setDisplayFriends] = useState([]);
-
-    //const searcher = new FuzzySearch(allFriends, ["allFriends", "username"])
+    const [isOnFriends, setIsOnFriends] = useState(true);
 
     useEffect(() => {
         if(!props.userID) { return; }
 
-        async function getMyFriends() {
-            axios.get("http://localhost:3500/getFriends/" + props.userID, {
+        async function getMyFriends() 
+        {
+            const url = "http://localhost:3500/getFriends/";
+
+            const res = await axios.get(url, {
                 withCredentials: true,
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 credentials: "same-origin"
-            })
-            .then((res) => {
-                setAllFriends(res.data);
-                setDisplayFriends(res.data);
-            })
-            .catch((err) => {
-                console.log(err);
-            })
+            });
+            
+            if(res.data.status === 200)
+            {
+                setAllFriends(res.data.friends);
+                setDisplayFriends(res.data.friends);
+            }
+        }
+
+        async function getFriendRequests()
+        {
+            const url = "http://localhost:3500/getFriendReqs/";
+
+            const res = await axios.get(url, {
+                withCredentials: true,
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                credentials: "same-origin"
+            });
+            
+            if(res.data.status === 200)
+            {
+                setRequests(res.data.friendReqsData);
+            }
         }
 
         getMyFriends();
+        getFriendRequests();
+
     }, [props.userID])
 
     const handleChanges = (e) => 
@@ -72,27 +93,56 @@ function Contacts(props) {
         setFilter(e.target.value);
         if(e.target.value.length === 0) 
         {
-            setDisplayFriends(allFriends)
+            setDisplayFriends(isOnFriends ? allFriends : allRequests)
         } 
         else 
         {
-            const filtered = (allFriends).filter((group) => {
-                return group.groupFriends[0].username.includes(e.target.value);
+            const listOfUsers = isOnFriends ? allFriends : allRequests;
+
+            const filtered = (listOfUsers).filter((group) => {
+                return (isOnFriends ? group.groupFriends[0].username.includes(e.target.value) 
+                        : group.username.includes(e.target.value));
             });
 
             setDisplayFriends(filtered);
         }
     }
 
+    function handleListsChange(status)
+    {
+        setIsOnFriends(status);
+
+        if(status)
+            setDisplayFriends(allFriends);
+        else
+            setDisplayFriends(allRequests);
+
+        setFilter("");
+    }
+
     return(
         <div className="contacts-container" style={{flexGrow: props.size}}>
-            <h2>Friends</h2>
-            <input placeholder="Search Friends" onChange={handleChanges} value={filterText}/>
+            <div className="tab">
+                <button className="tablinks" onClick={(e) => handleListsChange(true)}>Friends</button>
+                <button className="tablinks" onClick={(e) => handleListsChange(false)}>Friend Requests</button>
+            </div>
+
+            <h2>{isOnFriends ? "Friends" : "Friend Requests"}</h2>
+            
+            <input placeholder={isOnFriends ? "Search Friends" : "Search Friend Requests"} 
+                onChange={handleChanges} value={filterText}
+            />
 
             <div className="friends-list-container">
-                {displayedFriends.map((friend) => 
-                    <Friend openChat={props.openChat} isFriend={true} key={friend.groupFriends[0]._id} 
-                        roomID={friend.roomID} friend={friend.groupFriends[0]} />)}
+                {displayedFriends.map((friend, i) =>
+                    <Friend key={i} 
+                            openChat={isOnFriends ? props.openChat : null} 
+                            friendStatus={isOnFriends ? 0 : 1} 
+                            roomID={isOnFriends ? friend.roomID : null}
+                            friend={isOnFriends ? friend.groupFriends[0] : {_id: friend._id, username: friend.username}}
+                            isSearchBarRes={false}
+                    /> 
+                )}
             </div>
         </div>
     )

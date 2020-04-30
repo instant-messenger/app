@@ -11,7 +11,7 @@ import './styles/ChatPage.scss';
 
 function ChatPage(props)
 {
-    const [user, setUser] = useState({_id: "", username: "", friends: []});
+    const [user, setUser] = useState({_id: "", username: ""});
     const [userSocket, setSocket] = useState();
     const [messageText, setMessageText] = useState("");
     const [openRoomID, setRoomID] = useState("");
@@ -34,7 +34,7 @@ function ChatPage(props)
             })
             .then((res) => 
             {
-                setUser({_id: res.data._id, username: res.data.username, friends: res.data.friends});
+                setUser({_id: res.data._id, username: res.data.username});
                 responseStatus = res.status;
             })
             .catch((err) =>
@@ -107,7 +107,7 @@ function ChatPage(props)
         const url = "http://localhost:3500/sendMess/";
         
         const res = await axios.post(url, {messageText, openRoomID}, 
-            {
+        {
             withCredentials: true,
             headers: {
                 'Content-Type': 'application/json',
@@ -154,7 +154,7 @@ function ChatPage(props)
                 <input className="chat-page-input" onChange={handleChange} value={messageText} placeholder="Enter Message"/>
                 <button type="submit">Send</button>
             </form>
-                
+
             <button onClick={handleLogOut}>Log Out</button>
         </div>
     )
