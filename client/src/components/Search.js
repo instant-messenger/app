@@ -37,8 +37,7 @@ export default function Search() {
     const [ searchInput, setSearchInput ] = useState("")
     const [ resultFriends, setResultFriends ] = useState()
 
-    async function handleSearch(e)
-    {
+    async function handleSearch(e) {
         setSearchInput(e.target.value);
         
         if(e.target.value.length === 0) {
@@ -48,8 +47,7 @@ export default function Search() {
 
         const url = "http://localhost:3500/search/" + e.target.value;
         
-        await axios.get(url, 
-        {
+        await axios.get(url, {
             withCredentials: true,
             headers: {
                 'Content-Type': 'application/json',
@@ -60,7 +58,7 @@ export default function Search() {
             setResultFriends(res.data);
         })
         .catch((err) => {
-            console.log(err);
+            console.error(err);
         })
     }
 

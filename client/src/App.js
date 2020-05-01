@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Route, Switch } from 'react-router-dom';
 import Nav from './components/Nav';
 import RegisterPage from './Pages/RegisterPage';
@@ -6,8 +6,12 @@ import LoginPage from './Pages/LoginPage';
 import ChatPage from './Pages/ChatPage';
 import './App.scss';
 
-function App() 
-{
+function App() {
+    useEffect(() => {
+        const cookie = Document.cookie
+        console.log("hello", cookie)
+    }, [])
+
     return (
         <div className="App">
             <Nav />
