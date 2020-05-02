@@ -16,9 +16,6 @@ function ChatPage(props)
     const [openRoomID, setRoomID] = useState("");
 
     useEffect(() => {
-        const socket = io('http://localhost:3500/');
-        setSocket(socket);
-        
         async function checkAuthentication()
         {
             const res = await axios.get("http://localhost:3500/isAuth/", 
@@ -33,6 +30,10 @@ function ChatPage(props)
             if(res.data.status === 200)
             {
                 setUser(res.data.userData);
+                
+                const socket = io('http://localhost:3500/');
+                socket.emit("connectUser", res.data.userData._id);
+                setSocket(socket);
             }
             else
             {
@@ -42,11 +43,10 @@ function ChatPage(props)
         
         // Comment out the following line when styling chat page
         checkAuthentication();
-        
     }, [props.history]);
 
     async function handleLogOut()
-    {
+    {        
         const res = await axios.get("http://localhost:3500/logout", 
         {
             withCredentials: true,
@@ -55,19 +55,21 @@ function ChatPage(props)
             },
             credentials: "same-origin"
         });
-
+        
         if(res.data.status === 200)
         {
+            userSocket.emit("logout", user._id);
             props.history.push("/login");
         }
     }
     
-    function openChat(roomID)
+    function openChat(newRoomID)
     {
-        if(openRoomID === roomID) { return; }
+        const oldRoom = openRoomID;
+        if(oldRoom === newRoomID) { return; }
 
-        setRoomID(roomID);
-        userSocket.emit("joinRoom", roomID);
+        setRoomID(newRoomID);
+        userSocket.emit("joinRoom", oldRoom, newRoomID);
     }
 
     return(

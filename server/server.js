@@ -158,6 +158,11 @@ app.get("/search/:name/", async function(req, res)
 
         const selfUser = await UserMod.findById(selfUser_ID);
         const foundUser = await getSearchResult(req.params.name);
+
+        if(selfUser_ID === foundUser.id)
+        {
+            return;
+        }
         
         if(foundUser.friends.includes(selfUser_ID))
         {
@@ -199,7 +204,8 @@ app.post("/sendFriendReq", async function(req, res)
         const userToAdd_ID = req.body.clickedUserID;
         const userToAdd = await UserMod.findById(userToAdd_ID);
 
-        if(!userToAdd.friendReqs.includes(selfUser_ID))
+        // Before sending a friend request, it checks if user has already sent a friend request or are already friends. 
+        if(!userToAdd.friendReqs.includes(selfUser_ID) && !userToAdd.friends.includes(selfUser_ID))
         {
             userToAdd.friendReqs.push(selfUser_ID);
             userToAdd.save();
@@ -207,13 +213,12 @@ app.post("/sendFriendReq", async function(req, res)
         }
         else
         {
-            res.send({status: 400, message: ""})
+            res.send({status: 400, message: "Already friends or requested user has a pending friend request"});
         }
     }
     catch(err)
     {
-        console.log(err);
-        res.send({status: 404, message: "User not found or some"});
+        res.send({status: 404, message: "User not found"});
     }
 });
 
@@ -233,6 +238,12 @@ app.post("/addNewFriend", async function(req, res)
     
         const userWithRequest = await UserMod.findById(userWithRequest_ID);
         const pendingFriend = await UserMod.findById(pendingFriend_ID);
+
+        if(userWithRequest.friends.includes(pendingFriend_ID) || pendingFriend.friends.includes(userWithRequest_ID))
+        {
+            res.send({status: 400, message: "Already friends"});
+            return;
+        }
         
         const index = userWithRequest.friendReqs.indexOf(pendingFriend_ID);
         if (index > -1) 
@@ -263,7 +274,7 @@ app.post("/addNewFriend", async function(req, res)
                 userWithRequest.save();
                 pendingFriend.save();
 
-                res.send({status: 200, message: "Friends Added Successfully"});
+                res.send({status: 200, message: "Friends Added Successfully", selfUserID: userWithRequest_ID});
             }
             else
             {
@@ -323,6 +334,7 @@ app.post("/sendMess", async function(req, res)
     }
 });
 
+// Using the user id, it retrieves information about every user from their friend request list
 app.get("/getFriendReqs", async function(req, res)
 {
     if(!req.isAuthenticated())
@@ -351,7 +363,7 @@ async function getFriendRequestsData(userID)
     const user = await UserMod.findById(userID);
     
     const friendReqsData = user.friendReqs.map(async (friendReq_ID) => {
-        const pendingUser = await UserMod.findById(friendReq_ID);
+        const pendingUser = await UserMod.findById(friendReq_ID, '_id, username');
         return pendingUser;           
     });
 
@@ -381,9 +393,17 @@ async function getSearchResult(name)
     return await UserMod.findOne({username: name});
 }
 
+const connectedUsers = {};
+
 // ----------------Socket IO Start----------------------
 io.on('connection', function(socket)
 {
+    // When the user connects to the chat page, set the socket id to the user id from database
+    socket.on('connectUser', function(userID)
+    {
+        connectedUsers[userID] = socket.id;
+    });
+
     // This is called when a user is typing on the input box in the /chat page
     socket.on('chat', function(chatInfo)
     {
@@ -392,24 +412,40 @@ io.on('connection', function(socket)
 
     // This is called when a user clicks on a friend from the Contacts Panel Component. 
     // More than two users can be in a room.
-    socket.on('joinRoom', function(roomID)
+    socket.on('joinRoom', function(oldRoomID, newRoomID)
     {
-        socket.leaveAll();
-        socket.join(roomID);
-        socket.emit("requestUpdate");
+        if(oldRoomID.length !== 0)
+        {
+            socket.leave(oldRoomID);
+        }
+
+        socket.join(newRoomID);
+        socket.emit("requestMessageUpdate");
     });
 
     // This is called when a user sends a message to friends in a room. 
     // The server then notifies every user in the room to update their Chat Feed Component
     socket.on("messageNow", function(openRoomID)
     {
-        io.in(openRoomID).emit("requestUpdate");
+        io.in(openRoomID).emit("requestMessageUpdate");
 
         // To see how many client sockets are in the specified room.
         // var room = io.sockets.adapter.rooms[openRoomID];
         // console.log("Sent: " + room.length)
     });
 
+    // This is called when a user accepts or sends friend requests.
+    socket.on("updateLists", function(userID)
+    {
+        const userSocketID = connectedUsers[userID];
+        io.to(userSocketID).emit("requestListsUpdate");
+    })
+
+    socket.on("logout", function(userID)
+    {
+        socket.leaveAll();
+        delete connectedUsers[userID];
+    })
 });
 
 
