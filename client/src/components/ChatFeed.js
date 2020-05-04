@@ -21,6 +21,8 @@ export default function ChatFeed(props)
     {
         async function getMessages()
         {
+            if(!openRoomID) { return; }
+
             const url = "http://localhost:3500/getMessages/" + openRoomID;
 
             const res = await axios.get(url, 
@@ -62,7 +64,7 @@ export default function ChatFeed(props)
     {
         if(userSocket)
         {
-            userSocket.on("requestUpdate", function()
+            userSocket.on("requestMessageUpdate", function()
             {
                 if(!user._id) { return; }
 

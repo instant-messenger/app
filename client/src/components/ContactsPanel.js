@@ -12,8 +12,11 @@ function Contacts(props) {
     const [allFriends, setAllFriends] = useState([]);
     const [allRequests, setRequests] = useState([]);
     const [filterText, setFilter] = useState("");
-    const [displayedFriends, setDisplayFriends] = useState([]);
+    const [displayedFriends, setDisplayFriends] = useState(allFriends);
     const [isOnFriends, setIsOnFriends] = useState(true);
+    const [bAreListsUpdated, setListsUpdated] = useState(false);
+
+    const {userSocket} = props;
 
     useEffect(() => {
         if(!props.userID) { return; }
@@ -33,12 +36,11 @@ function Contacts(props) {
             if(res.data.status === 200)
             {
                 setAllFriends(res.data.friends);
-                setDisplayFriends(res.data.friends);
             }
         }
 
         async function getFriendRequests()
-        {
+        {            
             const url = "http://localhost:3500/getFriendReqs/";
 
             const res = await axios.get(url, {
@@ -52,13 +54,38 @@ function Contacts(props) {
             if(res.data.status === 200)
             {
                 setRequests(res.data.friendReqsData);
+                console.log(res.data)
             }
         }
 
-        getMyFriends();
-        getFriendRequests();
+        if(!bAreListsUpdated)
+        {
+            getMyFriends();
+            getFriendRequests();
+            setListsUpdated(true);
+        }
 
-    }, [props.userID])
+    }, [props.userID, bAreListsUpdated]);
+
+    useEffect(() => {
+        if(userSocket)
+        {
+            userSocket.on("requestListsUpdate", function()
+            {
+                // Update friend reqeust list
+                setListsUpdated(false);
+            });
+
+        }
+    }, [userSocket])
+
+    useEffect(() => 
+    {
+        if(props.userID && bAreListsUpdated)
+        {
+            setDisplayFriends(isOnFriends ? allFriends : allRequests);
+        }
+    }, [props.userID, bAreListsUpdated, isOnFriends, allFriends, allRequests])
 
     const handleChanges = (e) => 
     {
