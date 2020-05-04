@@ -10,15 +10,45 @@ function RegisterPage(props)
         password: "",
     });
 
-    function handleClick(e) 
+    React.useEffect(() => {       
+        async function getAuthenticationStatus()
+        {
+            const res = await axios.get("http://localhost:3500/isAuth/", 
+            {
+                withCredentials: true,
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                credentials: "same-origin"
+            }); 
+
+            return res.data.status;
+        }
+            
+        async function checkAuthentication()
+        {
+            const authenticationStatus = await getAuthenticationStatus();
+
+            if(authenticationStatus === 200)
+            {
+                props.history.push('/chat');
+            }
+        }
+        
+        // Comment out the following line when styling chat page
+        checkAuthentication();
+        
+    }, [props.history]);
+
+    async function handleClick(e) 
     {
         e.preventDefault();
-        
+
         // This url will go inside the .env file
         var url = 'http://localhost:3500/register';
         
         // Making an api post with the 'inputs' object to register it into the database 
-        axios.post(url, inputs, 
+        const res = await axios.post(url, inputs, 
         {
             withCredentials: true,
             headers: {
@@ -26,17 +56,11 @@ function RegisterPage(props)
             },
             credentials: "same-origin"
         })
-        .then((response) =>
+        
+        if(res.data.status === 200)
         {
-            if(response.status === 200)
-            {
-                props.history.push("/chat");
-            }
-        })
-        .catch((err) => 
-        {
-            console.log(err)
-        })
+            props.history.push("/chat");
+        }
     }
     
     function handleTyping(e) {

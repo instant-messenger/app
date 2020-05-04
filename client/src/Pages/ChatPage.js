@@ -11,106 +11,74 @@ import './styles/ChatPage.scss';
 
 function ChatPage(props)
 {
-    const [user, setUser] = useState({_id: "", username: "", friends: []});
+    const [user, setUser] = useState({_id: "", username: ""});
     const [userSocket, setSocket] = useState();
-    const [messageText, setMessageText] = useState();
+    const [openRoomID, setRoomID] = useState("");
 
     useEffect(() => {
         const socket = io('http://localhost:3500/');
         setSocket(socket);
         
-        axios.get("http://localhost:3500/isAuth/", 
+        async function checkAuthentication()
         {
-            withCredentials: true,
-            headers: {
-                'Content-Type': 'application/json',
-              },
-            credentials: "same-origin"
-        })
-        .then((response) => 
-        {
-            if(response.status === 200)
-            {         
-                setUser({_id: response.data._id, username: response.data.username, friends: response.data.friends});
+            const res = await axios.get("http://localhost:3500/isAuth/", 
+            {
+                withCredentials: true,
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                credentials: "same-origin"
+            }); 
+
+            if(res.data.status === 200)
+            {
+                setUser(res.data.userData);
             }
             else
             {
-                props.history.push("/")
-            }
-        })
-        .catch((err) => 
-        {
-            console.log(err);
-        })
+                props.history.push('/');
+            };
+        }
+        
+        // Comment out the following line when styling chat page
+        checkAuthentication();
         
     }, [props.history]);
 
-    function handleLogOut(e)
+    async function handleLogOut()
     {
-        axios.get("http://localhost:3500/logout", 
+        const res = await axios.get("http://localhost:3500/logout", 
         {
             withCredentials: true,
             headers: {
                 'Content-Type': 'application/json',
             },
             credentials: "same-origin"
-        })
-        .then((res) => 
+        });
+
+        if(res.data.status === 200)
         {
-            if(res.status === 200)
-            {
-                props.history.push("/login");
-            }
-        })
-        .catch((err) =>
-        {
-            console.log(err);
-        })
+            props.history.push("/login");
+        }
     }
     
-    function handleChange(e)
+    function openChat(roomID)
     {
-        e.preventDefault();
-        setMessageText(e.target.value);
-        userSocket.emit("chat", user.username);
+        if(openRoomID === roomID) { return; }
+
+        setRoomID(roomID);
+        userSocket.emit("joinRoom", roomID);
     }
-
-    // function sendMessage(e)
-    // {
-    //     e.preventDefault();
-    //     const url = "http://localhost:3500/postmess/";
-
-    //     axios.post(url, {content: messageText}, 
-    //     {
-    //         withCredentials: true,
-    //         headers: {
-    //             'Content-Type': 'application/json',
-    //         },
-    //         credentials: "same-origin"
-    //     })
-    //     .then((res) => {
-    //         console.log(res);
-    //     })
-    //     .catch((err) => {
-    //         console.log(err);
-    //     })
-    // }
 
     return(
         <div className="chat-page-container">
             {/* {user.username ? <h1 className="chat-page-username">Welcome {user.username}</h1> : null} */}
 
             <div className="chat-page-comps">
-                <Contacts userID={user._id} userSocket={userSocket} size={1} />
-                <ChatFeed size={10}/>
+                <Contacts openChat={openChat} userID={user._id} userSocket={userSocket} size={1} />
+                <ChatFeed user={user} openRoomID={openRoomID} userSocket={userSocket} size={10}/>
             </div>
 
-            {/* TODO Will update message sent in here */}
-            <form>
-                <input className="chat-page-input" onChange={handleChange} placeholder="Enter Message"/>
-                <button type="submit">Send</button>
-            </form>
-                
             <button onClick={handleLogOut}>Log Out</button>
         </div>
     )

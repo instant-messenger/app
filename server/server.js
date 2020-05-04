@@ -32,17 +32,15 @@ mongoose.connect('mongodb://localhost:27017/messengerDB', {useUnifiedTopology: t
 const userSchema = new mongoose.Schema({
 	username: String,
     password: String,
-    friends: [String]
+    friends: [String],
+    roomIDs: [String],
+    friendReqs: [String]
 });
 
 const roomSchema = new mongoose.Schema({
     members: [String],
     messages: [{sender: String, content: String}]
-})
-
-// group schema will contain the following properties
-    // _id, array of user ids, array of messages objects 
-    // (the message object will contain: sender id, content, date and time) 
+});
 
 userSchema.plugin(passportLocalMongoose);
 
@@ -58,7 +56,7 @@ passport.deserializeUser(UserMod.deserializeUser());
 app.post('/login', function(req, res)
 {
     const returningUser = new UserMod({
-		username: req.body.username,
+        username: req.body.username,
 		password: req.body.password
     });
     
@@ -66,13 +64,13 @@ app.post('/login', function(req, res)
     {
         if(err)
         {
-            res.status(404).send();
+            res.send({status: 401, message: "User Not Found"});
         }
         else
         {
             passport.authenticate("local")(req, res, function()
             {
-                res.status(200).send();                
+                res.send({status: 200, message: "Sucessful Login"});                
             });
         }
     })
@@ -80,15 +78,17 @@ app.post('/login', function(req, res)
 
 app.post('/register', function(req, res)
 {
-    UserMod.register({username: req.body.username, friends: []}, req.body.password, function(err, newUser)
+    UserMod.register({username: req.body.username, friends: [], roomIDs: [], friendReqs: []}, req.body.password, function(err, newUser)
     {
         if(err)
-            console.log(err);
+        {
+            res.send({status: 401, message: "Unable to Register."});
+        }
         else
         {
             passport.authenticate("local")(req, res, function()
             {
-                res.status(200).send();                
+                res.send({status: 200, message: "Registration Successful"});                
             });
         }
     })
@@ -98,12 +98,13 @@ app.get("/isAuth", function(req, res)
 {
     if(req.isAuthenticated())
     {
-        const userData = {_id: req.user._id, username: req.user.username, friends: req.user.friends};
-        res.status(200).send(userData);
+        const userData = {_id: req.user._id, username: req.user.username}
+        
+        res.send({status: 200, userData});
     }
     else
     {
-        res.status(400).send("Error - Not authenticated");
+        res.send({status: 401, message: "User is not Authenticated"});
     }
 });
 
@@ -112,115 +113,269 @@ app.get('/logout', function(req, res)
     if(req.isAuthenticated())
     {
         req.logout();
-        res.status(200).send();
+        res.send({status: 200, message: "Successful Logout"});
     }
     else
     {
-        res.status(401).send();
+        res.send({status: 401, message: "Unable to Logout"});
     }
-})
+});
 
-
-app.get('/getFriends/:id/', async function(req, res)
+// Using a user ID, this route retrieves that user's list of friends and room IDs
+app.get('/getFriends', async function(req, res)
 {
     if(!req.isAuthenticated()) 
     { 
-        res.status(401).send();
+        res.send({status: 401, message: "User is not Authenticated"});
         return; 
     }
     
-    const userID = req.params.id;
-    const friends = await getUserFriends(userID);
-    res.status(200).send(friends);
-})
-
-app.get("/testroom/", function(req, res)
-{
-    const newRoom = new RoomMod({
-        members: ["5e93f958cd94be1cc8b55b08", "5e927b7e658b9430c4382921"],
-        messages: [{
-            sender: "5e927b7e658b9430c4382921",
-            content: "Hi"
-        }, {
-            sender: "5e93f958cd94be1cc8b55b08",
-            content: "Cancel That"
-        }]
-    });
-    
-    newRoom.save(function(err)
+    try
     {
-        if(!err)
-        {
-            res.status(200).send("You Rock!");
-        }
-    });
-})
-
-app.post('/postmess/', function(req, res)
-{
-    const message = (req.body.content);
-    const senderID = (req.user._id);
-    
-    RoomMod.findById("5e95585b63125b64dc3d089f", function(err, foundRoom)
+        const userID = req.user.id;
+        const friends = await getUserFriends(userID);
+        res.send({status: 200, friends});
+    }
+    catch(err)
     {
-        if(foundRoom)
-        {
-            foundRoom.messages.push({sender: senderID, content: message});
-            
-            foundRoom.save(function(err)
-            {
-                if(!err)
-                {
-                    res.status(200).send();
-                }
-            });
-        }
-    });
-    
-})
+        res.send({status: 404, message: "Unable to get friends"});
+    }
+});
 
-app.get("/rooms/", async function(req, res)
-{
-    const all = await RoomMod.findById("5e95585b63125b64dc3d089f");
-    res.status(200).send(all);
-})
-
+// Searches for a user in the database and returns it to the Search Component in the client side
 app.get("/search/:name/", async function(req, res)
 {
     if(!req.isAuthenticated())
     {
-        res.status(401).send();
+        res.send({status: 401, message: "User is not Authenticated"});
         return;
     }
 
-    const user = await getSearchResult(req.params.name);
+    try
+    {
+        let friendStatus = -1;
+        const selfUser_ID = req.user.id;
 
-    res.status(200).send(user);
-})
+        const selfUser = await UserMod.findById(selfUser_ID);
+        const foundUser = await getSearchResult(req.params.name);
+        
+        if(foundUser.friends.includes(selfUser_ID))
+        {
+            friendStatus = 0;   // Already friends.
+        }
+        else if(selfUser.friendReqs.includes(foundUser.id))
+        {
+            friendStatus = 1;   // selfUser has a pending friend request from the user they searched for.
+        }
+        else if(foundUser.friendReqs.includes(selfUser_ID))
+        {
+            friendStatus = 2;   // selfUser has already sent a friend request to the user they searched for.
+        }
+        else
+        {
+            friendStatus = 3;   // The selfUser and search result are not friends nor have sent each other a friend request.
+        }
+
+        res.send({status: 200, foundUser, friendStatus});
+    }
+    catch(err)
+    {
+        res.send({status: 404});
+    }
+    
+});
+
+app.post("/sendFriendReq", async function(req, res)
+{
+    if(!req.isAuthenticated())
+    {
+        res.send({status: 401, message: "User is not Authenticated"});
+        return;
+    }
+
+    try
+    {
+        const selfUser_ID = req.user.id;
+        const userToAdd_ID = req.body.clickedUserID;
+        const userToAdd = await UserMod.findById(userToAdd_ID);
+
+        if(!userToAdd.friendReqs.includes(selfUser_ID))
+        {
+            userToAdd.friendReqs.push(selfUser_ID);
+            userToAdd.save();
+            res.send({status: 200, message: "Friend Request Sent"});
+        }
+        else
+        {
+            res.send({status: 400, message: ""})
+        }
+    }
+    catch(err)
+    {
+        console.log(err);
+        res.send({status: 404, message: "User not found or some"});
+    }
+});
+
+// Using two user IDs, it retrieves both users, add each other's IDs to their 'friends' array, and creates a new room so they can chat in.
+app.post("/addNewFriend", async function(req, res)
+{
+    if(!req.isAuthenticated())
+    {
+        res.send({status: 401, message: "User is not Authenticated"});
+        return;
+    }
+        
+    try 
+    {
+        const userWithRequest_ID = req.user.id;
+        const pendingFriend_ID = req.body.clickedUserID;
+    
+        const userWithRequest = await UserMod.findById(userWithRequest_ID);
+        const pendingFriend = await UserMod.findById(pendingFriend_ID);
+        
+        const index = userWithRequest.friendReqs.indexOf(pendingFriend_ID);
+        if (index > -1) 
+        {
+            userWithRequest.friendReqs.splice(index, 1);
+        }
+        else
+        {
+            res.send({status: 401, message: "No Friend Request Found"});
+            return;
+        }
+
+        userWithRequest.friends.push(pendingFriend_ID);
+        pendingFriend.friends.push(userWithRequest_ID);
+        
+        const newRoom = new RoomMod({
+            members: [userWithRequest_ID, pendingFriend_ID],
+            messages: []
+        });
+        
+        newRoom.save(function(err, room)
+        {
+            if(room)
+            {                    
+                userWithRequest.roomIDs.push(room._id);
+                pendingFriend.roomIDs.push(room._id);
+                
+                userWithRequest.save();
+                pendingFriend.save();
+
+                res.send({status: 200, message: "Friends Added Successfully"});
+            }
+            else
+            {
+                res.send({status: 500, message: "Failed to add Friends"});
+            }
+        });
+    } 
+    catch(error) 
+    {
+        res.send({status: 404, message: "Failed to Add Friends"});
+    }
+});
+
+// Retrieves messages from a specified room in the database
+app.get("/getMessages/:roomID", async function(req, res)
+{
+    if(!req.isAuthenticated())
+    {
+        res.send({status: 401, message: "User is not Authenticated"});
+        return;
+    }
+
+    const roomID = req.params.roomID;
+    const room = await RoomMod.findById(roomID);
+
+    if(room.members.includes(req.user.id))
+        res.send({status: 200, messages: room.messages});
+    else
+        req.send({status: 500, err: "Unable to get Messages"});
+});
+
+// Posts a message to a room that should exist in the database
+app.post("/sendMess", async function(req, res)
+{
+    if(!req.isAuthenticated())
+    {
+        res.send({status: 401, message: "User is not Authenticated"});
+        return;
+    }
+
+    try 
+    {
+        const messageContent = req.body.messageText;
+        const senderName = req.user.username;
+        const roomID = req.body.openRoomID;
+
+        const room = await RoomMod.findById(roomID);
+        room.messages.push({sender: senderName, content: messageContent});
+
+        room.save();
+        res.send({status: 200, message: "Message was sent successfully"});
+    }
+    catch (err) 
+    {
+        console.log(err);
+        res.send({status: 500, message: "Unable to send message"});
+    }
+});
+
+app.get("/getFriendReqs", async function(req, res)
+{
+    if(!req.isAuthenticated())
+    {
+        res.send({status: 401, message: "User is not Authenticated"});
+        return;
+    }
+
+    try
+    {
+        const user_ID = req.user.id;
+        const friendReqsData = await getFriendRequestsData(user_ID);
+
+        res.send({status: 200, friendReqsData});
+    }
+    catch(err)
+    {
+        res.send({status: 404, message: "Unable to get friend requests"});
+    }
+});
 
 // ----------------Database End-----------------
+
+async function getFriendRequestsData(userID)
+{
+    const user = await UserMod.findById(userID);
+    
+    const friendReqsData = user.friendReqs.map(async (friendReq_ID) => {
+        const pendingUser = await UserMod.findById(friendReq_ID);
+        return pendingUser;           
+    });
+
+    return Promise.all(friendReqsData);
+}
+
+// Returns an array that's populated with room ids and an array of friends belonging to that room
 async function getUserFriends(userID)
 {
     const user = await UserMod.findById(userID);
 
-    const userFriends = user.friends.map(async (friendID) => {
-        const friend = await UserMod.findById(friendID);
-        return (friend);
-    })
+    return Promise.all(user.roomIDs.map(async (roomID) => 
+    {
+        const room = await RoomMod.findById(roomID);
 
-    return await Promise.all(userFriends);
+        const groupFriends = await UserMod.find({'_id': {$in: room.members}}, '_id, username');
+
+        groupFriends.splice(groupFriends.findIndex(item => item.id === userID), 1);
+
+        return {groupFriends, roomID};
+    }));
 }
 
-function createNewRoom(memberIDs)
-{
-    const newRoom = new RoomMod({
-        members: memberIDs,
-        messages: []
-    });
-
-    newRoom.save();
-}
-
+// Using the user's input in the Search Component, it will look for a specified username in the database
 async function getSearchResult(name)
 {
     return await UserMod.findOne({username: name});
@@ -230,9 +385,29 @@ async function getSearchResult(name)
 io.on('connection', function(socket)
 {
     // This is called when a user is typing on the input box in the /chat page
-    socket.on('chat', function(username)
+    socket.on('chat', function(chatInfo)
     {
-        console.log(username + " is typing");
+        socket.to(chatInfo.roomID).emit('typing', chatInfo.username);
+    });
+
+    // This is called when a user clicks on a friend from the Contacts Panel Component. 
+    // More than two users can be in a room.
+    socket.on('joinRoom', function(roomID)
+    {
+        socket.leaveAll();
+        socket.join(roomID);
+        socket.emit("requestUpdate");
+    });
+
+    // This is called when a user sends a message to friends in a room. 
+    // The server then notifies every user in the room to update their Chat Feed Component
+    socket.on("messageNow", function(openRoomID)
+    {
+        io.in(openRoomID).emit("requestUpdate");
+
+        // To see how many client sockets are in the specified room.
+        // var room = io.sockets.adapter.rooms[openRoomID];
+        // console.log("Sent: " + room.length)
     });
 
 });

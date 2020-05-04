@@ -1,15 +1,26 @@
 .friend-container {
     display: flex;
+    flex-direction: row;
     margin-top: 10px;
-    background-color: white;
+    background-color: whitesmoke;
     width: 100%;
-    color: black;
     align-items: center;
     border-radius: 5px;
     transition: .3s ease-in-out;
     cursor: pointer;
     &:hover {
         transform: scale(1.03);
+    }
+
+    .friend-info
+    {
+        display: flex;
+        flex-direction: row;
+        width: 100%;
+        color: black;
+        align-items: center;
+        border-top-left-radius:6px;
+
     }
 
     .profile-image {
@@ -24,5 +35,31 @@
 
     a {
         text-decoration: none;
+    }
+
+    .myButton {
+        box-shadow:inset 0px 1px 0px 0px #caefab;
+        background:linear-gradient(to bottom, #77d42a 5%, #5cb811 100%);
+        background-color:#77d42a;
+        border-top-right-radius:6px;
+        border:1px solid #268a16;
+        display:inline-block;
+        cursor:pointer;
+        color:white;
+        font-family:Arial;
+        font-size:15px;
+        font-weight:bold;
+        padding:6px 20px;
+        height: 50px;
+        text-decoration:none;
+        text-shadow:0px 1px 0px #aade7c;
+    }
+    .myButton:hover {
+        background:linear-gradient(to bottom, #5cb811 5%, #77d42a 100%);
+        background-color:#5cb811;
+    }
+    .myButton:active {
+        position:relative;
+        top:1px;
     }
 }
