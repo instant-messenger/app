@@ -27,7 +27,7 @@ function ChatPage(props)
                 credentials: "same-origin"
             }); 
 
-            if(res.data.status === 200)
+            if(res.status === 200)
             {
                 setUser(res.data.userData);
                 

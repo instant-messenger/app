@@ -5,12 +5,14 @@ import Nav from './components/Nav';
 import RegisterPage from './Pages/RegisterPage';
 import LoginPage from './Pages/LoginPage';
 import ChatPage from './Pages/ChatPage';
+import { withRouter } from 'react-router-dom';
 import './App.scss';
 
 function App(props) {
     const [ user, setUser ] = useState({});
 
     useEffect(() => {
+        console.log(props)
         axios.get("http://localhost:3500/isAuth/", {
             withCredentials: true,
             headers: {
@@ -39,4 +41,4 @@ function App(props) {
     );
 }
 
-export default App;
+export default withRouter(App);

@@ -94,17 +94,16 @@ app.post('/register', function(req, res)
     })
 })
 
-app.get("/isAuth", function(req, res)
-{
+app.get("/isAuth", function(req, res) {
     if(req.isAuthenticated())
     {
         const userData = {_id: req.user._id, username: req.user.username}
         
-        res.send({status: 200, userData});
+        res.status(200).json({message: "User is authenticated", userData});
     }
     else
     {
-        res.send({status: 401, message: "User is not Authenticated"});
+        res.status(401).json({message: "User is not authenticated"});
     }
 });
 
