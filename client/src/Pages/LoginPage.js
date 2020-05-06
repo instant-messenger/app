@@ -4,16 +4,14 @@ import { Link } from 'react-router-dom';
 
 import "./styles/LoginPage.scss";
 
-function LoginPage(props)
-{
+function LoginPage(props) {
     const [inputs, setInputs] = React.useState({
         username: "",
         password: "",
     });
 
     React.useEffect(() => {
-        async function getAuthenticationStatus()
-        {
+        async function getAuthenticationStatus() {
             const res = await axios.get("http://localhost:3500/isAuth/", 
             {
                 withCredentials: true,
@@ -26,12 +24,10 @@ function LoginPage(props)
             return res.data.status;
         }
             
-        async function checkAuthentication()
-        {
+        async function checkAuthentication() {
             const authenticationStatus = await getAuthenticationStatus();
 
-            if(authenticationStatus === 200)
-            {
+            if(authenticationStatus === 200) {
                 props.history.push("/chat");
             }
         }
@@ -41,8 +37,7 @@ function LoginPage(props)
         
     }, [props.history]);
 
-    async function handleClick(e) 
-    {
+    async function handleClick(e) {
         e.preventDefault();
         
         // This url will go inside the .env file
@@ -58,8 +53,7 @@ function LoginPage(props)
             credentials: "same-origin"
         });
         
-        if(res.data.status === 200)
-        {
+        if(res.data.status === 200) {
             props.history.push("/chat");
         }
     }
