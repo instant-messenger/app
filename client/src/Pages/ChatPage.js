@@ -14,6 +14,7 @@ function ChatPage(props)
     const [user, setUser] = useState({_id: "", username: ""});
     const [userSocket, setSocket] = useState();
     const [openRoomID, setRoomID] = useState("");
+    const [friendName, setFriendName] = useState("");
 
     useEffect(() => {
         async function checkAuthentication()
@@ -27,7 +28,7 @@ function ChatPage(props)
                 credentials: "same-origin"
             }); 
 
-            if(res.status === 200)
+            if(res.data.status === 200)
             {
                 setUser(res.data.userData);
                 
@@ -44,44 +45,24 @@ function ChatPage(props)
         // Comment out the following line when styling chat page
         checkAuthentication();
     }, [props.history]);
-
-    async function handleLogOut()
-    {        
-        const res = await axios.get("http://localhost:3500/logout", 
-        {
-            withCredentials: true,
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            credentials: "same-origin"
-        });
-        
-        if(res.data.status === 200)
-        {
-            userSocket.emit("logout", user._id);
-            props.history.push("/login");
-        }
-    }
     
-    function openChat(newRoomID)
+    function openChat(newRoomID, friend)
     {
         const oldRoom = openRoomID;
         if(oldRoom === newRoomID) { return; }
-
+        
+        setFriendName(friend);
         setRoomID(newRoomID);
         userSocket.emit("joinRoom", oldRoom, newRoomID);
     }
-
+    
     return(
         <div className="chat-page-container">
-            {/* {user.username ? <h1 className="chat-page-username">Welcome {user.username}</h1> : null} */}
-
             <div className="chat-page-comps">
-                <Contacts openChat={openChat} userID={user._id} userSocket={userSocket} size={1} />
-                <ChatFeed user={user} openRoomID={openRoomID} userSocket={userSocket} size={10}/>
+                <Contacts {...props} openChat={openChat} userID={user._id} userSocket={userSocket} />
+                <ChatFeed user={user} openRoomID={openRoomID} friendName={friendName} userSocket={userSocket} isContactsCollapsed={props.isContactsCollapsed} />
             </div>
 
-            <button onClick={handleLogOut}>Log Out</button>
         </div>
     )
 }

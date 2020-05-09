@@ -1,5 +1,6 @@
 import React, {useState, useEffect} from 'react';
 import axios from 'axios';
+import MessageBubble from './MessageBubble';
 import './styles/ChatFeed.scss';
 
 export default function ChatFeed(props) 
@@ -145,23 +146,27 @@ export default function ChatFeed(props)
     }
 
     return (
-        <div className="chat-feed-container" style={{flexGrow: props.size}}>
-            {openRoomID.length !== 0 ? <h2>Room ID: {openRoomID}</h2> : null}
+        <div className="chat-feed-container">
+            {props.friendName.length !== 0 ? <h2>{props.friendName} {friendTyping.length !== 0 ? " is typing..." : null}</h2> : <h2>Welcome {user.username}</h2>}
 
-            {messages.map((message, i) => {
-                return (
-                    <div key={i}>
-                        <h2>{message.sender}: -{message.content}</h2>
-                    </div>
-                )
-            })}
+            <div className="chat-messages">
+                <ul>
+                    {messages.map((message, i) => {
+                        return (
+                            <li key={i}>
+                                <MessageBubble isMyMessage={message.sender === user.username} message = {message.content} sender = {message.sender} />
+                            </li>
+                        )
+                    })}
+                </ul>
+            </div>
 
-            {friendTyping.length !== 0 ? <p>{friendTyping + " is typing..."}</p> : null}
-            
-            <form onSubmit={handleMessageSend}>
-                <input className="chat-page-input" onChange={handleChange} value={messageText} placeholder="Enter Message"/>
-                <button type="submit">Send</button>
-            </form>
+            <div className="chat-feed-message-composition">
+                <form onSubmit={handleMessageSend}>
+                    <input className="chat-page-input" onChange={handleChange} value={messageText} placeholder="Enter Message"/>
+                    <button className="sendBtn" type="submit">Send</button>
+                </form>
+            </div>
         </div>
     )
 }

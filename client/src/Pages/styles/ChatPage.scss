@@ -1,9 +1,7 @@
 .chat-page-container{
     background-color: white;
     margin: 0;
-    height: 100vh;
-    position: relative;
-    width: 100%;
+    height: 93vh;
 
     .chat-page-username{
         color: black;
@@ -13,9 +11,6 @@
     .chat-page-comps{
         display:flex; 
         flex-direction:row;
-        position: relative;
-        height: 100%;
-        width: 100%;
     }
 
     .chat-page-input {

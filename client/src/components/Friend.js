@@ -18,7 +18,6 @@ export default function Friend(props) {
         });
 
         if(res.data.status === 200) {
-            //window.location.reload();   // Will replace this line with socket io
             const selfUserID = res.data.selfUserID;
 
             const socket = io('http://localhost:3500/');
@@ -55,10 +54,12 @@ export default function Friend(props) {
 
     function handleClick(e)
     {
+        e.preventDefault();
+
         if(props.friendStatus === 0 && !props.isSearchBarRes)
         {
             // Updates Chat Feed messages if clicking on a friend
-            props.openChat(props.roomID);
+            props.openChat(props.roomID, props.friend.username);
         }
         else if(props.friendStatus === 3 && props.isSearchBarRes)
         {

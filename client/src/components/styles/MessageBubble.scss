@@ -1,0 +1,25 @@
+.bubble-container
+{
+    background-color: red;
+    padding: 20px;
+    border: 1px solid black;
+    border-radius: 10px;
+    text-align: left;
+    
+    p{
+        font-size: 3vh;
+        overflow-wrap: break-word;
+    }
+}
+
+.my-message{
+    margin: 0 0 15px 70%;
+    background-color: #3d94f6;
+    color: whitesmoke;
+}
+
+.their-message{
+    margin: 0 70% 15px 0;
+    background-color: whitesmoke;
+    color: black;
+}

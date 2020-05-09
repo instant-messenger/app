@@ -1,7 +1,6 @@
 import React, {useState, useEffect} from 'react';
 import './styles/ContactsPanel.scss';
 import axios from 'axios';
-//import FuzzySearch from 'fuzzy-search';
 
 
 // Components
@@ -54,7 +53,6 @@ function Contacts(props) {
             if(res.data.status === 200)
             {
                 setRequests(res.data.friendReqsData);
-                console.log(res.data)
             }
         }
 
@@ -119,14 +117,32 @@ function Contacts(props) {
         setFilter("");
     }
 
+    async function handleLogOut()
+    {        
+        const res = await axios.get("http://localhost:3500/logout", 
+        {
+            withCredentials: true,
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: "same-origin"
+        });
+        
+        if(res.data.status === 200)
+        {
+            userSocket.emit("logout", props.userID);
+            props.history.push("/login");
+        }
+    }
+
     return(
-        <div className="contacts-container" style={{flexGrow: props.size}}>
+        <div className="contacts-container">
             <div className="tab">
-                <button className="tablinks" onClick={(e) => handleListsChange(true)}>Friends</button>
-                <button className="tablinks" onClick={(e) => handleListsChange(false)}>Friend Requests</button>
+                <button className="tabButton" onClick={(e) => handleListsChange(true)}>Friends</button>
+                <button className="tabButton" onClick={(e) => handleListsChange(false)}>Requests</button>
             </div>
 
-            <h2>{isOnFriends ? "Friends" : "Friend Requests"}</h2>
+            <h2 className="list-displayed">{isOnFriends ? "Friends" : "Friend Requests"}</h2>
             
             <input placeholder={isOnFriends ? "Search Friends" : "Search Friend Requests"} 
                 onChange={handleChanges} value={filterText}
@@ -143,6 +159,9 @@ function Contacts(props) {
                     /> 
                 )}
             </div>
+
+            <button className="logout-button" onClick={handleLogOut}>Log Out</button>
+
         </div>
     )
 }

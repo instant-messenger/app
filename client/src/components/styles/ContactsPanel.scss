@@ -1,22 +1,93 @@
 .contacts-container{
-    background-color: black;
+    background-color: rgb(42, 42, 42);
     color: white;
     box-shadow: 0px 0px 14px 0px rgba(0,0,0,0.35);
-    margin: 0;
-    //position: absolute;
-    left: 0;
-    top: 0;
-    //width: 300px;
-    height: 100%;
-    padding: 20px;
-    padding-top: 25px;
-    // z-index: 15;
+    height: 93vh;
+    padding: 0 2vh 1vh;
     display: flex;
     flex-direction: column;
-    align-items: center;
+    max-width: 20vw;
+    min-width: 20vw;
+    width: 20vw;
+
+    .tab{
+        width: 100%;
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
+    }
+    
+    .tabButton {
+        flex-grow: 1;
+        box-shadow:inset 0px 1px 0px 0px #ffffff;
+        background:linear-gradient(to bottom, #f9f9f9 5%, #e9e9e9 100%);
+	    background-color:#f9f9f9;
+        height: 5vh;
+        border:1px solid black;        
+        cursor:pointer;
+        color:#0f0600;        
+        font-family:Arial;
+        font-weight: bold;
+        font-size:2vh;
+        padding: .5vh;
+        text-decoration:none;
+        text-shadow:0px 1px 0px #ffffff;    
+    }
+    .tabButton:hover {
+        background:linear-gradient(to bottom, #1e62d0 5%, #3d94f6 100%);
+        background-color:#1e62d0;
+        color: whitesmoke;
+        text-shadow: none;
+        box-shadow: none;
+    }
+    .tabButton:active {
+        position:relative;
+        top:1px;
+    }
+
+    .list-displayed{
+        margin: 2vh 0;
+        font-size: 3vh;
+    }
+
+    input{
+        height: 5vh;
+        font-size: 2vh;
+    }
 
     .friends-list-container {
         width: 100%;
+        background-color: rgb(42, 42, 42);
+        height: 65vh;
+        overflow-y: scroll;
+        overflow-x: hidden;
+        margin-top: 2vh;
+        padding: 0 .5vw;
+    }
+    
+    .logout-button {
+        margin-top: auto;
+        height: 5vh;
+        box-shadow:inset 0px 1px 0px 0px #f5978e;
+        background:linear-gradient(to bottom, #f24537 5%, #c62d1f 100%);
+        background-color:#f24537;
+        border-radius:6px;
+        border:1px solid #d02718;
+        display:inline-block;
+        cursor:pointer;
+        color:#ffffff;
+        font-family:Arial;
+        font-weight:bold;
+        text-decoration:none;
+        text-shadow:0px 1px 0px #810e05;
+        font-size:2vh;
+    }
+    .logout-button:hover {
+        background:linear-gradient(to bottom, #c62d1f 5%, #f24537 100%);
+        background-color:#c62d1f;
+    }
+    .logout-button:active {
+        position:relative;
+        top:1px;
     }
 }
-
